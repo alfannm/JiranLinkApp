@@ -30,7 +30,8 @@ class _MainNavigationState extends State<MainNavigation> {
   @override
   Widget build(BuildContext context) {
     final unreadMessages = MockData.mockMessages.where((m) => m.unread).length;
-    final pendingRequests = context.watch<BookingsProvider>().pendingRequestsCount;
+    final pendingRequests =
+        context.watch<BookingsProvider>().pendingRequestsCount;
 
     return Scaffold(
       body: IndexedStack(
@@ -42,26 +43,28 @@ class _MainNavigationState extends State<MainNavigation> {
           border: Border(
             top: BorderSide(color: AppTheme.border, width: 1),
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black26,
-              blurRadius: 20,
-              offset: Offset(0, -5),
-            ),
-          ],
         ),
         child: BottomNavigationBar(
           currentIndex: _currentIndex,
           onTap: (index) {
-            setState(() {
-              _currentIndex = index;
-            });
+            if (index == 2) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const PostItemScreen()),
+              );
+            } else {
+              setState(() {
+                _currentIndex = index;
+              });
+            }
           },
-          backgroundColor: AppTheme.cardBackground,
+          backgroundColor: Colors.white,
           selectedItemColor: AppTheme.primary,
           unselectedItemColor: AppTheme.mutedForeground,
           type: BottomNavigationBarType.fixed,
           elevation: 0,
+          selectedFontSize: 12,
+          unselectedFontSize: 12,
           items: [
             const BottomNavigationBarItem(
               icon: Icon(Icons.home_outlined),
@@ -76,25 +79,14 @@ class _MainNavigationState extends State<MainNavigation> {
               icon: Container(
                 width: 48,
                 height: 48,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF3B82F6), Color(0xFF2563EB)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppTheme.primary.withOpacity(0.4),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
+                decoration: const BoxDecoration(
+                  color: AppTheme.primary,
+                  shape: BoxShape.circle,
                 ),
                 child: const Icon(
                   Icons.add,
                   color: Colors.white,
-                  size: 28,
+                  size: 32,
                 ),
               ),
               label: 'Post',
@@ -106,11 +98,11 @@ class _MainNavigationState extends State<MainNavigation> {
                   const Icon(Icons.chat_bubble_outline),
                   if (unreadMessages > 0)
                     Positioned(
-                      right: -6,
-                      top: -4,
+                      right: -2,
+                      top: -2,
                       child: Container(
-                        width: 8,
-                        height: 8,
+                        width: 10,
+                        height: 10,
                         decoration: const BoxDecoration(
                           color: AppTheme.destructive,
                           shape: BoxShape.circle,
@@ -119,25 +111,7 @@ class _MainNavigationState extends State<MainNavigation> {
                     ),
                 ],
               ),
-              activeIcon: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  const Icon(Icons.chat_bubble),
-                  if (unreadMessages > 0)
-                    Positioned(
-                      right: -6,
-                      top: -4,
-                      child: Container(
-                        width: 8,
-                        height: 8,
-                        decoration: const BoxDecoration(
-                          color: AppTheme.destructive,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
+              activeIcon: const Icon(Icons.chat_bubble),
               label: 'Messages',
             ),
             BottomNavigationBarItem(
@@ -147,62 +121,20 @@ class _MainNavigationState extends State<MainNavigation> {
                   const Icon(Icons.person_outline),
                   if (pendingRequests > 0)
                     Positioned(
-                      right: -10,
-                      top: -4,
+                      right: -2,
+                      top: -2,
                       child: Container(
-                        padding: const EdgeInsets.all(4),
+                        width: 10,
+                        height: 10,
                         decoration: const BoxDecoration(
-                          color: Colors.yellow,
+                          color: AppTheme.destructive,
                           shape: BoxShape.circle,
-                        ),
-                        constraints: const BoxConstraints(
-                          minWidth: 20,
-                          minHeight: 20,
-                        ),
-                        child: Text(
-                          '$pendingRequests',
-                          style: const TextStyle(
-                            color: Colors.black,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          textAlign: TextAlign.center,
                         ),
                       ),
                     ),
                 ],
               ),
-              activeIcon: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  const Icon(Icons.person),
-                  if (pendingRequests > 0)
-                    Positioned(
-                      right: -10,
-                      top: -4,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(
-                          color: Colors.yellow,
-                          shape: BoxShape.circle,
-                        ),
-                        constraints: const BoxConstraints(
-                          minWidth: 20,
-                          minHeight: 20,
-                        ),
-                        child: Text(
-                          '$pendingRequests',
-                          style: const TextStyle(
-                            color: Colors.black,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
+              activeIcon: const Icon(Icons.person),
               label: 'Profile',
             ),
           ],

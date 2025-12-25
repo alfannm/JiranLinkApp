@@ -17,6 +17,7 @@ class ItemsProvider extends ChangeNotifier {
 
   List<Item> get items => _filteredItems();
   List<Item> get allItems => _items;
+  ItemCategory? get selectedCategory => _selectedCategory;
 
   void setSearchQuery(String query) {
     _searchQuery = query;
@@ -52,11 +53,14 @@ class ItemsProvider extends ChangeNotifier {
 
     // Filter by category
     if (_selectedCategory != null) {
-      filtered = filtered.where((item) => item.category == _selectedCategory).toList();
+      filtered =
+          filtered.where((item) => item.category == _selectedCategory).toList();
     }
 
     // Filter by radius
-    if (_radiusFilter != null && _userLatitude != null && _userLongitude != null) {
+    if (_radiusFilter != null &&
+        _userLatitude != null &&
+        _userLongitude != null) {
       filtered = filtered.where((item) {
         final distance = calculateDistance(
           _userLatitude!,
@@ -104,5 +108,10 @@ class ItemsProvider extends ChangeNotifier {
     } catch (e) {
       return null;
     }
+  }
+
+  void addItem(Item item) {
+    _items.add(item);
+    notifyListeners();
   }
 }

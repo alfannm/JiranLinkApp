@@ -31,7 +31,7 @@ class MyApp extends StatelessWidget {
           return MaterialApp(
             title: 'JiranLink',
             debugShowCheckedModeBanner: false,
-            theme: AppTheme.darkTheme,
+            theme: AppTheme.lightTheme,
             home: authProvider.hasCompletedOnboarding
                 ? const MainNavigation()
                 : const WelcomeScreen(),

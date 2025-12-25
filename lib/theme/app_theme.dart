@@ -2,33 +2,38 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
-  // Premium Dark Color Palette
-  static const Color background = Color(0xFF0A0E17);
-  static const Color cardBackground = Color(0xFF111827);
-  static const Color foreground = Color(0xFFE4E7EB);
-  static const Color primary = Color(0xFF3B82F6);
-  static const Color primaryForeground = Color(0xFFFFFFFF);
-  static const Color secondary = Color(0xFF1E293B);
-  static const Color secondaryForeground = Color(0xFFE4E7EB);
-  static const Color muted = Color(0xFF374151);
-  static const Color mutedForeground = Color(0xFF9CA3AF);
-  static const Color accent = Color(0xFF4F46E5);
+  // Clean Green Color Palette
+  static const Color primary = Color(0xFF00A651); // Macalister Green
+  static const Color primaryDark = Color(0xFF008C44);
+  static const Color background = Color(0xFFF9FAFB); // Very light grey
+  static const Color cardBackground = Color(0xFFFFFFFF);
+  static const Color foreground = Color(0xFF1F2937); // Dark grey text
+  static const Color muted = Color(0xFFF3F4F6);
+  static const Color mutedForeground = Color(0xFF6B7280); // Medium grey
+  static const Color border = Color(0xFFE5E7EB);
   static const Color destructive = Color(0xFFEF4444);
-  static const Color border = Color(0x4D475569); // rgba(71, 85, 105, 0.3)
+  static const Color primaryForeground = Colors.white;
+  static const Color secondary =
+      Color(0xFFE5E7EB); // Light grey for secondary actions
+  static const Color secondaryForeground = Color(0xFF1F2937);
+  static const Color accent =
+      Color(0xFF00A651); // Same as primary for consistency
 
-  static ThemeData get darkTheme {
+  static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
-      brightness: Brightness.dark,
+      brightness: Brightness.light,
       scaffoldBackgroundColor: background,
-      colorScheme: const ColorScheme.dark(
+      primaryColor: primary,
+
+      colorScheme: const ColorScheme.light(
         primary: primary,
-        secondary: secondary,
+        secondary: primary,
         surface: cardBackground,
         background: background,
         error: destructive,
-        onPrimary: primaryForeground,
-        onSecondary: secondaryForeground,
+        onPrimary: Colors.white,
+        onSecondary: Colors.white,
         onSurface: foreground,
         onBackground: foreground,
       ),
@@ -38,37 +43,37 @@ class AppTheme {
         const TextTheme(
           displayLarge: TextStyle(
             fontSize: 32,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w700,
             color: foreground,
-            height: 1.5,
+            height: 1.2,
           ),
           displayMedium: TextStyle(
             fontSize: 28,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w700,
             color: foreground,
-            height: 1.5,
+            height: 1.2,
           ),
           displaySmall: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.w600,
             color: foreground,
-            height: 1.5,
+            height: 1.3,
           ),
           headlineMedium: TextStyle(
             fontSize: 20,
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w600,
             color: foreground,
-            height: 1.5,
+            height: 1.4,
           ),
           headlineSmall: TextStyle(
             fontSize: 18,
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w600,
             color: foreground,
-            height: 1.5,
+            height: 1.4,
           ),
           titleLarge: TextStyle(
             fontSize: 16,
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w600,
             color: foreground,
             height: 1.5,
           ),
@@ -94,7 +99,7 @@ class AppTheme {
             fontSize: 14,
             fontWeight: FontWeight.w500,
             color: foreground,
-            height: 1.5,
+            height: 1.4,
           ),
         ),
       ),
@@ -111,11 +116,12 @@ class AppTheme {
 
       // App Bar Theme
       appBarTheme: const AppBarTheme(
-        backgroundColor: cardBackground,
+        backgroundColor: Colors.white,
         elevation: 0,
-        centerTitle: false,
+        scrolledUnderElevation: 0,
+        centerTitle: true,
         titleTextStyle: TextStyle(
-          fontSize: 20,
+          fontSize: 18,
           fontWeight: FontWeight.w600,
           color: foreground,
         ),
@@ -125,37 +131,41 @@ class AppTheme {
       // Input Decoration Theme
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: cardBackground,
+        fillColor: Colors.white,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(8),
           borderSide: const BorderSide(color: border),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(8),
           borderSide: const BorderSide(color: border),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: primary, width: 2),
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: primary, width: 1.5),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: destructive),
         ),
         hintStyle: const TextStyle(color: mutedForeground),
         contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       ),
 
       // Elevated Button Theme
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: primary,
-          foregroundColor: primaryForeground,
+          foregroundColor: Colors.white,
           elevation: 0,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(8),
           ),
           textStyle: const TextStyle(
             fontSize: 16,
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ),
@@ -163,32 +173,35 @@ class AppTheme {
       // Text Button Theme
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: mutedForeground,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          foregroundColor: primary,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           textStyle: const TextStyle(
             fontSize: 14,
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ),
 
       // Bottom Navigation Bar Theme
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-        backgroundColor: cardBackground,
+        backgroundColor: Colors.white,
         selectedItemColor: primary,
         unselectedItemColor: mutedForeground,
         type: BottomNavigationBarType.fixed,
-        elevation: 0,
+        elevation: 10,
+        showSelectedLabels: true,
+        showUnselectedLabels: true,
       ),
 
       // Chip Theme
       chipTheme: ChipThemeData(
-        backgroundColor: secondary,
+        backgroundColor: Colors.white,
         labelStyle: const TextStyle(color: foreground),
         side: const BorderSide(color: border),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
         ),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       ),
 
       // Divider Theme

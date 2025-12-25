@@ -6,6 +6,8 @@ import '../../data/mock_data.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/item_card.dart';
 import '../../models/item.dart';
+import '../item_details/item_detail_screen.dart';
+import '../browse/browse_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -29,13 +31,7 @@ class HomeScreen extends StatelessWidget {
             pinned: true,
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFF3B82F6), Color(0xFF6366F1)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
+                color: AppTheme.primary,
                 child: SafeArea(
                   child: Padding(
                     padding: const EdgeInsets.all(24.0),
@@ -47,16 +43,17 @@ class HomeScreen extends StatelessWidget {
                           'Welcome to JiranLink',
                           style: TextStyle(
                             color: Colors.white,
-                            fontSize: 28,
-                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                         const SizedBox(height: 8),
                         const Text(
                           'Share tools, skills & services with your neighbors',
                           style: TextStyle(
-                            color: Color(0xFFBFDBFE),
-                            fontSize: 14,
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -64,15 +61,16 @@ class HomeScreen extends StatelessWidget {
                           children: [
                             const Icon(
                               Icons.location_on,
-                              color: Color(0xFFBFDBFE),
+                              color: Colors.white,
                               size: 16,
                             ),
                             const SizedBox(width: 8),
                             Text(
                               currentUser.district,
                               style: const TextStyle(
-                                color: Color(0xFFBFDBFE),
+                                color: Colors.white,
                                 fontSize: 14,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
                           ],
@@ -89,19 +87,46 @@ class HomeScreen extends StatelessWidget {
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
-              child: TextField(
-                decoration: InputDecoration(
-                  hintText: 'Search for items or services...',
-                  prefixIcon:
-                      const Icon(Icons.search, color: AppTheme.mutedForeground),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppTheme.border),
-                  ),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
-                onChanged: (query) {
-                  itemsProvider.setSearchQuery(query);
-                },
+                child: TextField(
+                  decoration: InputDecoration(
+                    hintText: 'Search for items or services...',
+                    hintStyle: const TextStyle(color: AppTheme.mutedForeground),
+                    prefixIcon: const Icon(Icons.search,
+                        color: AppTheme.mutedForeground),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Colors.transparent),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Colors.transparent),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide:
+                          const BorderSide(color: AppTheme.primary, width: 1.5),
+                    ),
+                    filled: true,
+                    fillColor: Colors.white,
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 14),
+                  ),
+                  onChanged: (query) {
+                    itemsProvider.setSearchQuery(query);
+                  },
+                ),
               ),
             ),
           ),
@@ -109,14 +134,14 @@ class HomeScreen extends StatelessWidget {
           // Categories
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
                     'Categories',
                     style: TextStyle(
-                      fontSize: 20,
+                      fontSize: 18,
                       fontWeight: FontWeight.w600,
                       color: AppTheme.foreground,
                     ),
@@ -151,20 +176,26 @@ class HomeScreen extends StatelessWidget {
           if (nearbyItems.isNotEmpty) ...[
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text(
                       'Near You',
                       style: TextStyle(
-                        fontSize: 20,
+                        fontSize: 18,
                         fontWeight: FontWeight.w600,
                         color: AppTheme.foreground,
                       ),
                     ),
                     TextButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const BrowseScreen()),
+                        );
+                      },
                       child: const Text('See all'),
                     ),
                   ],
@@ -189,6 +220,14 @@ class HomeScreen extends StatelessWidget {
                       onToggleFavorite: () {
                         favoritesProvider.toggleFavorite(item.id);
                       },
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ItemDetailScreen(item: item),
+                          ),
+                        );
+                      },
                     );
                   },
                   childCount: nearbyItems.length > 4 ? 4 : nearbyItems.length,
@@ -200,20 +239,26 @@ class HomeScreen extends StatelessWidget {
           // Featured Items
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
                     'Featured',
                     style: TextStyle(
-                      fontSize: 20,
+                      fontSize: 18,
                       fontWeight: FontWeight.w600,
                       color: AppTheme.foreground,
                     ),
                   ),
                   TextButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const BrowseScreen()),
+                      );
+                    },
                     child: const Text('See all'),
                   ),
                 ],
@@ -221,7 +266,7 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
             sliver: SliverGrid(
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
@@ -238,6 +283,14 @@ class HomeScreen extends StatelessWidget {
                     onToggleFavorite: () {
                       favoritesProvider.toggleFavorite(item.id);
                     },
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ItemDetailScreen(item: item),
+                        ),
+                      );
+                    },
                   );
                 },
                 childCount: featuredItems.length,
@@ -251,6 +304,10 @@ class HomeScreen extends StatelessWidget {
 
   Widget _buildCategoryCard(BuildContext context, IconData icon, String label,
       ItemCategory? category) {
+    // Check if this category is selected
+    final isSelected =
+        context.watch<ItemsProvider>().selectedCategory == category;
+
     return Padding(
       padding: const EdgeInsets.only(right: 12.0),
       child: InkWell(
@@ -262,9 +319,11 @@ class HomeScreen extends StatelessWidget {
           width: 80,
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: AppTheme.cardBackground,
+            color:
+                isSelected ? AppTheme.primary.withOpacity(0.1) : Colors.white,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppTheme.border),
+            border: Border.all(
+                color: isSelected ? AppTheme.primary : AppTheme.border),
           ),
           child: Column(
             children: [
@@ -272,21 +331,23 @@ class HomeScreen extends StatelessWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: AppTheme.primary.withOpacity(0.2),
+                  color:
+                      isSelected ? AppTheme.primary : const Color(0xFFF3F4F6),
                   borderRadius: BorderRadius.circular(24),
                 ),
                 child: Icon(
                   icon,
-                  color: AppTheme.primary,
+                  color: isSelected ? Colors.white : AppTheme.primary,
                   size: 24,
                 ),
               ),
               const SizedBox(height: 8),
               Text(
                 label,
-                style: const TextStyle(
-                  color: AppTheme.foreground,
+                style: TextStyle(
+                  color: isSelected ? AppTheme.primary : AppTheme.foreground,
                   fontSize: 12,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                 ),
                 textAlign: TextAlign.center,
               ),

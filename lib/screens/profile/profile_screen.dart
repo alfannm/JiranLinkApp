@@ -3,6 +3,10 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../data/mock_data.dart';
 import '../../theme/app_theme.dart';
+import 'favorites_screen.dart';
+import 'bookings_screen.dart';
+import 'incoming_requests_screen.dart';
+import 'my_listings_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -15,13 +19,13 @@ class ProfileScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profile'),
-        backgroundColor: AppTheme.cardBackground,
+        backgroundColor: AppTheme.primary,
+        foregroundColor: Colors.white,
+        elevation: 0,
         actions: [
           IconButton(
             icon: const Icon(Icons.settings_outlined),
-            onPressed: () {
-              // Navigate to settings
-            },
+            onPressed: () {},
           ),
         ],
       ),
@@ -30,17 +34,8 @@ class ProfileScreen extends StatelessWidget {
           children: [
             // Profile Header
             Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF3B82F6), Color(0xFF6366F1)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                border: Border(
-                  bottom: BorderSide(color: AppTheme.border),
-                ),
-              ),
+              padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
+              color: AppTheme.primary,
               child: Column(
                 children: [
                   CircleAvatar(
@@ -54,6 +49,7 @@ class ProfileScreen extends StatelessWidget {
                             style: const TextStyle(
                               fontSize: 32,
                               color: AppTheme.primary,
+                              fontWeight: FontWeight.bold,
                             ),
                           )
                         : null,
@@ -68,14 +64,33 @@ class ProfileScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    user.email,
-                    style: const TextStyle(
-                      color: Color(0xFFBFDBFE),
-                      fontSize: 14,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.location_on,
+                          color: Colors.white70, size: 16),
+                      const SizedBox(width: 4),
+                      Text(
+                        user.district,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      const Icon(Icons.calendar_today,
+                          color: Colors.white70, size: 16),
+                      const SizedBox(width: 4),
+                      const Text(
+                        'Joined 1/15/2024', // Mock date
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 8),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -86,8 +101,21 @@ class ProfileScreen extends StatelessWidget {
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 14,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Stats Row
+                  Row(
+                    children: [
+                      _buildStatCard('2', 'Items'),
+                      const SizedBox(width: 16),
+                      _buildStatCard('12', 'Rentals'),
+                      const SizedBox(width: 16),
+                      _buildStatCard('8', 'Borrowed'),
                     ],
                   ),
                 ],
@@ -95,83 +123,83 @@ class ProfileScreen extends StatelessWidget {
             ),
 
             // Menu Items
+            const SizedBox(height: 24),
             _buildMenuItem(
               context,
               icon: Icons.favorite_outline,
-              title: 'My Favorites',
+              title: 'Favorites',
               onTap: () {
-                // Navigate to favorites
-              },
-            ),
-            const Divider(height: 1, color: AppTheme.border),
-            _buildMenuItem(
-              context,
-              icon: Icons.calendar_today_outlined,
-              title: 'My Bookings',
-              onTap: () {
-                // Navigate to bookings
-              },
-            ),
-            const Divider(height: 1, color: AppTheme.border),
-            _buildMenuItem(
-              context,
-              icon: Icons.inbox_outlined,
-              title: 'Incoming Requests',
-              trailing: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.yellow,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Text(
-                  '0',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const FavoritesScreen(),
                   ),
-                ),
-              ),
-              onTap: () {
-                // Navigate to requests
+                );
               },
             ),
-            const Divider(height: 1, color: AppTheme.border),
             _buildMenuItem(
               context,
               icon: Icons.inventory_2_outlined,
+              title: 'My Bookings',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const BookingsScreen(),
+                  ),
+                );
+              },
+            ),
+            _buildMenuItem(
+              context,
+              icon: Icons.notifications_none_outlined,
+              title: 'Incoming Requests',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const IncomingRequestsScreen(),
+                  ),
+                );
+              },
+            ),
+            _buildMenuItem(
+              context,
+              icon: Icons.storefront_outlined,
               title: 'My Listings',
               onTap: () {
-                // Navigate to my listings
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const MyListingsScreen(),
+                  ),
+                );
               },
             ),
-            const Divider(height: 1, color: AppTheme.border),
+            const Divider(height: 32, thickness: 8, color: AppTheme.background),
+
+            _buildSectionHeader('Settings'),
             _buildMenuItem(
               context,
-              icon: Icons.history,
-              title: 'Transaction History',
-              onTap: () {
-                // Navigate to history
-              },
+              icon: Icons.verified_user_outlined,
+              title: 'Verification Status',
+              trailing: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppTheme.primary,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Text(
+                  'Verified',
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold),
+                ),
+              ),
+              onTap: () {},
             ),
-            const Divider(height: 1, color: AppTheme.border),
-            _buildMenuItem(
-              context,
-              icon: Icons.help_outline,
-              title: 'Help & Support',
-              onTap: () {
-                // Navigate to support
-              },
-            ),
-            const Divider(height: 1, color: AppTheme.border),
-            _buildMenuItem(
-              context,
-              icon: Icons.info_outline,
-              title: 'About JiranLink',
-              onTap: () {
-                // Navigate to about
-              },
-            ),
+
             const SizedBox(height: 24),
 
             // Logout Button
@@ -184,15 +212,66 @@ class ProfileScreen extends StatelessWidget {
                     authProvider.logout();
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.destructive,
-                    foregroundColor: Colors.white,
+                    backgroundColor: Colors.white,
+                    foregroundColor: AppTheme.destructive,
+                    elevation: 0,
+                    side: const BorderSide(color: AppTheme.border),
                   ),
                   child: const Text('Log Out'),
                 ),
               ),
             ),
-            const SizedBox(height: 100),
+            const SizedBox(height: 40),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatCard(String value, String label) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.15),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          children: [
+            Text(
+              value,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white70,
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: Text(
+          title,
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: AppTheme.foreground,
+          ),
         ),
       ),
     );
@@ -206,13 +285,25 @@ class ProfileScreen extends StatelessWidget {
     required VoidCallback onTap,
   }) {
     return ListTile(
-      leading: Icon(icon, color: AppTheme.foreground),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+      leading: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: AppTheme.background,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Icon(icon, color: AppTheme.foreground, size: 20),
+      ),
       title: Text(
         title,
-        style: const TextStyle(color: AppTheme.foreground),
+        style: const TextStyle(
+          color: AppTheme.foreground,
+          fontWeight: FontWeight.w500,
+        ),
       ),
       trailing: trailing ??
-          const Icon(Icons.chevron_right, color: AppTheme.mutedForeground),
+          const Icon(Icons.chevron_right,
+              color: AppTheme.mutedForeground, size: 20),
       onTap: onTap,
     );
   }
