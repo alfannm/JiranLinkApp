@@ -7,7 +7,7 @@ import '../../theme/app_theme.dart';
 import '../../widgets/item_card.dart';
 import '../../models/item.dart';
 import '../item_details/item_detail_screen.dart';
-import '../browse/browse_screen.dart';
+import '../main_navigation.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -26,12 +26,22 @@ class HomeScreen extends StatelessWidget {
         slivers: [
           // App Bar with Gradient
           SliverAppBar(
-            expandedHeight: 200,
+            expandedHeight: 220,
             floating: false,
             pinned: true,
+            backgroundColor: AppTheme.primary,
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
-                color: AppTheme.primary,
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Color(0xFF10B981), // Primary
+                      Color(0xFF059669), // Darker shade
+                    ],
+                  ),
+                ),
                 child: SafeArea(
                   child: Padding(
                     padding: const EdgeInsets.all(24.0),
@@ -42,9 +52,10 @@ class HomeScreen extends StatelessWidget {
                         const Text(
                           'Welcome to JiranLink',
                           style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
+                            color: Colors.white70,
+                            fontSize: 14,
                             fontWeight: FontWeight.w500,
+                            letterSpacing: 0.5,
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -52,29 +63,40 @@ class HomeScreen extends StatelessWidget {
                           'Share tools, skills & services with your neighbors',
                           style: TextStyle(
                             color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            height: 1.2,
                           ),
                         ),
                         const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.location_on,
-                              color: Colors.white,
-                              size: 16,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              currentUser.district,
-                              style: const TextStyle(
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.location_on,
                                 color: Colors.white,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
+                                size: 14,
                               ),
-                            ),
-                          ],
+                              const SizedBox(width: 4),
+                              Text(
+                                currentUser.district,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
+                        const SizedBox(height: 8),
                       ],
                     ),
                   ),
@@ -125,6 +147,11 @@ class HomeScreen extends StatelessWidget {
                   ),
                   onChanged: (query) {
                     itemsProvider.setSearchQuery(query);
+                  },
+                  onSubmitted: (query) {
+                    itemsProvider.setSearchQuery(query);
+                    MainNavigation.of(context)
+                        ?.switchToTab(1); // Switch to Browse
                   },
                 ),
               ),
@@ -190,11 +217,8 @@ class HomeScreen extends StatelessWidget {
                     ),
                     TextButton(
                       onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const BrowseScreen()),
-                        );
+                        MainNavigation.of(context)
+                            ?.switchToTab(1); // Switch to Browse
                       },
                       child: const Text('See all'),
                     ),
@@ -209,7 +233,7 @@ class HomeScreen extends StatelessWidget {
                   crossAxisCount: 2,
                   crossAxisSpacing: 16,
                   mainAxisSpacing: 16,
-                  childAspectRatio: 0.75,
+                  childAspectRatio: 0.7, // Taller card to prevent overflow
                 ),
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
@@ -253,11 +277,8 @@ class HomeScreen extends StatelessWidget {
                   ),
                   TextButton(
                     onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const BrowseScreen()),
-                      );
+                      MainNavigation.of(context)
+                          ?.switchToTab(1); // Switch to Browse
                     },
                     child: const Text('See all'),
                   ),
@@ -272,7 +293,7 @@ class HomeScreen extends StatelessWidget {
                 crossAxisCount: 2,
                 crossAxisSpacing: 16,
                 mainAxisSpacing: 16,
-                childAspectRatio: 0.75,
+                childAspectRatio: 0.7,
               ),
               delegate: SliverChildBuilderDelegate(
                 (context, index) {
@@ -313,27 +334,38 @@ class HomeScreen extends StatelessWidget {
       child: InkWell(
         onTap: () {
           context.read<ItemsProvider>().setCategory(category);
+          MainNavigation.of(context)?.switchToTab(1); // Switch to Browse
         },
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         child: Container(
           width: 80,
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color:
-                isSelected ? AppTheme.primary.withOpacity(0.1) : Colors.white,
-            borderRadius: BorderRadius.circular(12),
+            color: isSelected ? AppTheme.primary : Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              if (!isSelected)
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+            ],
             border: Border.all(
-                color: isSelected ? AppTheme.primary : AppTheme.border),
+              color: isSelected ? AppTheme.primary : Colors.transparent,
+            ),
           ),
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color:
-                      isSelected ? AppTheme.primary : const Color(0xFFF3F4F6),
-                  borderRadius: BorderRadius.circular(24),
+                  color: isSelected
+                      ? Colors.white.withOpacity(0.2)
+                      : const Color(0xFFF3F4F6),
+                  shape: BoxShape.circle,
                 ),
                 child: Icon(
                   icon,
@@ -345,11 +377,13 @@ class HomeScreen extends StatelessWidget {
               Text(
                 label,
                 style: TextStyle(
-                  color: isSelected ? AppTheme.primary : AppTheme.foreground,
+                  color: isSelected ? Colors.white : AppTheme.foreground,
                   fontSize: 12,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                 ),
                 textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),

@@ -34,7 +34,8 @@ class ItemCard extends StatelessWidget {
             Stack(
               children: [
                 ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                  borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(12)),
                   child: AspectRatio(
                     aspectRatio: 4 / 3,
                     child: CachedNetworkImage(
@@ -53,7 +54,7 @@ class ItemCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                
+
                 // Favorite Button
                 Positioned(
                   top: 8,
@@ -76,13 +77,14 @@ class ItemCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                
+
                 // Type Badge
                 Positioned(
                   top: 8,
                   right: 8,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: AppTheme.primary,
                       borderRadius: BorderRadius.circular(6),
@@ -97,14 +99,15 @@ class ItemCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                
+
                 // Not Available Overlay
                 if (!item.available)
                   Positioned.fill(
                     child: Container(
                       decoration: BoxDecoration(
                         color: Colors.black.withOpacity(0.7),
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                        borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(12)),
                       ),
                       child: const Center(
                         child: Chip(
@@ -116,11 +119,11 @@ class ItemCard extends StatelessWidget {
                   ),
               ],
             ),
-            
+
             // Content
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.all(12.0),
+                padding: const EdgeInsets.all(10.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -130,13 +133,13 @@ class ItemCard extends StatelessWidget {
                       style: const TextStyle(
                         color: AppTheme.foreground,
                         fontSize: 14,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.w600,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 4),
-                    
+                    const SizedBox(height: 2),
+
                     // Description
                     Text(
                       item.description,
@@ -144,26 +147,26 @@ class ItemCard extends StatelessWidget {
                         color: AppTheme.mutedForeground,
                         fontSize: 12,
                       ),
-                      maxLines: 2,
+                      maxLines: 1, // Reduced to 1 line to save space
                       overflow: TextOverflow.ellipsis,
                     ),
                     const Spacer(),
-                    
+
                     // Location
                     Row(
                       children: [
                         const Icon(
                           Icons.location_on,
-                          size: 14,
+                          size: 12,
                           color: AppTheme.mutedForeground,
                         ),
-                        const SizedBox(width: 4),
+                        const SizedBox(width: 2),
                         Expanded(
                           child: Text(
                             item.district,
                             style: const TextStyle(
                               color: AppTheme.mutedForeground,
-                              fontSize: 12,
+                              fontSize: 11,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -171,8 +174,8 @@ class ItemCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
-                    
+                    const SizedBox(height: 4),
+
                     // Price and Rating
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,

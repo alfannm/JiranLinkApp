@@ -6,14 +6,39 @@ import '../../providers/favorites_provider.dart';
 import '../../widgets/item_card.dart';
 import '../item_details/item_detail_screen.dart';
 
-class BrowseScreen extends StatelessWidget {
+class BrowseScreen extends StatefulWidget {
   const BrowseScreen({super.key});
+
+  @override
+  State<BrowseScreen> createState() => _BrowseScreenState();
+}
+
+class _BrowseScreenState extends State<BrowseScreen> {
+  late TextEditingController _searchController;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final itemsProvider = context.watch<ItemsProvider>();
     final favoritesProvider = context.watch<FavoritesProvider>();
     final items = itemsProvider.items;
+
+    // Sync controller with provider if needed (e.g. initial load or external update)
+    if (_searchController.text != itemsProvider.searchQuery) {
+      _searchController.text = itemsProvider.searchQuery;
+      // _searchController.selection = TextSelection.fromPosition(TextPosition(offset: _searchController.text.length)); // Optional: move cursor to end
+    }
 
     return Scaffold(
       body: SafeArea(
@@ -36,6 +61,7 @@ class BrowseScreen extends StatelessWidget {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: TextField(
+                            controller: _searchController,
                             decoration: const InputDecoration(
                               hintText: 'Search items or services...',
                               prefixIcon: Icon(Icons.search,
@@ -133,7 +159,7 @@ class BrowseScreen extends StatelessWidget {
                         crossAxisCount: 2,
                         crossAxisSpacing: 16,
                         mainAxisSpacing: 16,
-                        childAspectRatio: 0.75,
+                        childAspectRatio: 0.7,
                       ),
                       itemCount: items.length,
                       itemBuilder: (context, index) {

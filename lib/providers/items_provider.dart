@@ -17,7 +17,9 @@ class ItemsProvider extends ChangeNotifier {
 
   List<Item> get items => _filteredItems();
   List<Item> get allItems => _items;
+  List<Item> get selectedCategoryItems => _items; // Placeholder if needed
   ItemCategory? get selectedCategory => _selectedCategory;
+  String get searchQuery => _searchQuery;
 
   void setSearchQuery(String query) {
     _searchQuery = query;
