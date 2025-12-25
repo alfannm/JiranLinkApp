@@ -50,7 +50,8 @@ class MessagesScreen extends StatelessWidget {
               ),
               itemBuilder: (context, index) {
                 final message = messages[index];
-                final timeAgo = DateFormat('MMM d, h:mm a').format(message.timestamp);
+                final timeAgo =
+                    DateFormat('MMM d, h:mm a').format(message.timestamp);
 
                 return ListTile(
                   leading: CircleAvatar(
@@ -72,8 +73,9 @@ class MessagesScreen extends StatelessWidget {
                           message.from.name,
                           style: TextStyle(
                             color: AppTheme.foreground,
-                            fontWeight:
-                                message.unread ? FontWeight.w600 : FontWeight.w400,
+                            fontWeight: message.unread
+                                ? FontWeight.w600
+                                : FontWeight.w400,
                           ),
                         ),
                       ),
@@ -103,8 +105,9 @@ class MessagesScreen extends StatelessWidget {
                         message.lastMessage,
                         style: TextStyle(
                           color: AppTheme.mutedForeground,
-                          fontWeight:
-                              message.unread ? FontWeight.w500 : FontWeight.w400,
+                          fontWeight: message.unread
+                              ? FontWeight.w500
+                              : FontWeight.w400,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,

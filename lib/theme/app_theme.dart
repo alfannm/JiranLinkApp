@@ -15,7 +15,7 @@ class AppTheme {
   static const Color accent = Color(0xFF4F46E5);
   static const Color destructive = Color(0xFFEF4444);
   static const Color border = Color(0x4D475569); // rgba(71, 85, 105, 0.3)
-  
+
   static ThemeData get darkTheme {
     return ThemeData(
       useMaterial3: true,
@@ -32,7 +32,7 @@ class AppTheme {
         onSurface: foreground,
         onBackground: foreground,
       ),
-      
+
       // Text Theme
       textTheme: GoogleFonts.interTextTheme(
         const TextTheme(
@@ -98,9 +98,9 @@ class AppTheme {
           ),
         ),
       ),
-      
+
       // Card Theme
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: cardBackground,
         elevation: 0,
         shape: RoundedRectangleBorder(
@@ -108,7 +108,7 @@ class AppTheme {
           side: const BorderSide(color: border, width: 1),
         ),
       ),
-      
+
       // App Bar Theme
       appBarTheme: const AppBarTheme(
         backgroundColor: cardBackground,
@@ -121,7 +121,7 @@ class AppTheme {
         ),
         iconTheme: IconThemeData(color: foreground),
       ),
-      
+
       // Input Decoration Theme
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
@@ -139,9 +139,10 @@ class AppTheme {
           borderSide: const BorderSide(color: primary, width: 2),
         ),
         hintStyle: const TextStyle(color: mutedForeground),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       ),
-      
+
       // Elevated Button Theme
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -158,7 +159,7 @@ class AppTheme {
           ),
         ),
       ),
-      
+
       // Text Button Theme
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
@@ -170,7 +171,7 @@ class AppTheme {
           ),
         ),
       ),
-      
+
       // Bottom Navigation Bar Theme
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: cardBackground,
@@ -179,7 +180,7 @@ class AppTheme {
         type: BottomNavigationBarType.fixed,
         elevation: 0,
       ),
-      
+
       // Chip Theme
       chipTheme: ChipThemeData(
         backgroundColor: secondary,
@@ -189,7 +190,7 @@ class AppTheme {
           borderRadius: BorderRadius.circular(8),
         ),
       ),
-      
+
       // Divider Theme
       dividerTheme: const DividerThemeData(
         color: border,

@@ -45,9 +45,8 @@ class ProfileScreen extends StatelessWidget {
                 children: [
                   CircleAvatar(
                     radius: 50,
-                    backgroundImage: user.avatar != null
-                        ? NetworkImage(user.avatar!)
-                        : null,
+                    backgroundImage:
+                        user.avatar != null ? NetworkImage(user.avatar!) : null,
                     backgroundColor: Colors.white,
                     child: user.avatar == null
                         ? Text(
@@ -94,7 +93,7 @@ class ProfileScreen extends StatelessWidget {
                 ],
               ),
             ),
-            
+
             // Menu Items
             _buildMenuItem(
               context,
@@ -174,7 +173,7 @@ class ProfileScreen extends StatelessWidget {
               },
             ),
             const SizedBox(height: 24),
-            
+
             // Logout Button
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -212,7 +211,8 @@ class ProfileScreen extends StatelessWidget {
         title,
         style: const TextStyle(color: AppTheme.foreground),
       ),
-      trailing: trailing ?? const Icon(Icons.chevron_right, color: AppTheme.mutedForeground),
+      trailing: trailing ??
+          const Icon(Icons.chevron_right, color: AppTheme.mutedForeground),
       onTap: onTap,
     );
   }

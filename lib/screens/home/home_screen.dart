@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/items_provider.dart';
 import '../../providers/favorites_provider.dart';
-import '../../providers/auth_provider.dart';
 import '../../data/mock_data.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/item_card.dart';
+import '../../models/item.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -15,7 +15,7 @@ class HomeScreen extends StatelessWidget {
     final itemsProvider = context.watch<ItemsProvider>();
     final favoritesProvider = context.watch<FavoritesProvider>();
     final currentUser = MockData.currentUser;
-    
+
     final nearbyItems = itemsProvider.getNearbyItems(currentUser.district, 4);
     final featuredItems = itemsProvider.getFeaturedItems(6);
 
@@ -84,7 +84,7 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
           ),
-          
+
           // Search Bar
           SliverToBoxAdapter(
             child: Padding(
@@ -92,7 +92,8 @@ class HomeScreen extends StatelessWidget {
               child: TextField(
                 decoration: InputDecoration(
                   hintText: 'Search for items or services...',
-                  prefixIcon: const Icon(Icons.search, color: AppTheme.mutedForeground),
+                  prefixIcon:
+                      const Icon(Icons.search, color: AppTheme.mutedForeground),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: const BorderSide(color: AppTheme.border),
@@ -104,7 +105,7 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
           ),
-          
+
           // Categories
           SliverToBoxAdapter(
             child: Padding(
@@ -125,11 +126,19 @@ class HomeScreen extends StatelessWidget {
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: [
-                        _buildCategoryCard(context, Icons.inventory_2_outlined, 'All', null),
-                        _buildCategoryCard(context, Icons.construction_outlined, 'Tools', ItemCategory.tools),
-                        _buildCategoryCard(context, Icons.devices_outlined, 'Appliances', ItemCategory.appliances),
-                        _buildCategoryCard(context, Icons.lightbulb_outline, 'Skills', ItemCategory.skills),
-                        _buildCategoryCard(context, Icons.business_center_outlined, 'Services', ItemCategory.services),
+                        _buildCategoryCard(
+                            context, Icons.inventory_2_outlined, 'All', null),
+                        _buildCategoryCard(context, Icons.construction_outlined,
+                            'Tools', ItemCategory.tools),
+                        _buildCategoryCard(context, Icons.devices_outlined,
+                            'Appliances', ItemCategory.appliances),
+                        _buildCategoryCard(context, Icons.lightbulb_outline,
+                            'Skills', ItemCategory.skills),
+                        _buildCategoryCard(
+                            context,
+                            Icons.business_center_outlined,
+                            'Services',
+                            ItemCategory.services),
                       ],
                     ),
                   ),
@@ -137,7 +146,7 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
           ),
-          
+
           // Nearby Items
           if (nearbyItems.isNotEmpty) ...[
             SliverToBoxAdapter(
@@ -187,7 +196,7 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
           ],
-          
+
           // Featured Items
           SliverToBoxAdapter(
             child: Padding(
@@ -240,7 +249,8 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildCategoryCard(BuildContext context, IconData icon, String label, ItemCategory? category) {
+  Widget _buildCategoryCard(BuildContext context, IconData icon, String label,
+      ItemCategory? category) {
     return Padding(
       padding: const EdgeInsets.only(right: 12.0),
       child: InkWell(
