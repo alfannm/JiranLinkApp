@@ -30,12 +30,10 @@ class AppTheme {
         primary: primary,
         secondary: primary,
         surface: cardBackground,
-        background: background,
         error: destructive,
         onPrimary: Colors.white,
         onSecondary: Colors.white,
         onSurface: foreground,
-        onBackground: foreground,
       ),
 
       // Text Theme

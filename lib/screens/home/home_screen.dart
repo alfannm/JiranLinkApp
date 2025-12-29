@@ -22,138 +22,95 @@ class HomeScreen extends StatelessWidget {
     final featuredItems = itemsProvider.getFeaturedItems(6);
 
     return Scaffold(
+      backgroundColor: Colors.white,
       body: CustomScrollView(
         slivers: [
-          // App Bar with Gradient
-          SliverAppBar(
-            expandedHeight: 220,
-            floating: false,
-            pinned: true,
-            backgroundColor: AppTheme.primary,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      Color(0xFF10B981), // Primary
-                      Color(0xFF059669), // Darker shade
-                    ],
+          // Custom Green Header
+          SliverToBoxAdapter(
+            child: Container(
+              color: const Color(0xFF10B981), // Primary Green
+              padding: const EdgeInsets.fromLTRB(24, 60, 24, 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Welcome to JiranLink',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                ),
-                child: SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.end,
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Share tools, skills & services with your neighbors',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      height: 1.2,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Location Pill
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Text(
-                          'Welcome to JiranLink',
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            letterSpacing: 0.5,
-                          ),
+                        const Icon(
+                          Icons.location_on,
+                          color: Colors.white,
+                          size: 14,
                         ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          'Share tools, skills & services with your neighbors',
-                          style: TextStyle(
+                        const SizedBox(width: 4),
+                        Text(
+                          currentUser.district,
+                          style: const TextStyle(
                             color: Colors.white,
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            height: 1.2,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
-                        const SizedBox(height: 16),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                Icons.location_on,
-                                color: Colors.white,
-                                size: 14,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                currentUser.district,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 8),
                       ],
                     ),
                   ),
-                ),
-              ),
-            ),
-          ),
+                  const SizedBox(height: 24),
 
-          // Search Bar
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
+                  // Search Bar
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                  ],
-                ),
-                child: TextField(
-                  decoration: InputDecoration(
-                    hintText: 'Search for items or services...',
-                    hintStyle: const TextStyle(color: AppTheme.mutedForeground),
-                    prefixIcon: const Icon(Icons.search,
-                        color: AppTheme.mutedForeground),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Colors.transparent),
+                    child: TextField(
+                      decoration: const InputDecoration(
+                        hintText: 'Search for items or services...',
+                        hintStyle:
+                            TextStyle(color: Color(0xFF9CA3AF), fontSize: 14),
+                        prefixIcon: Icon(Icons.search,
+                            color: Color(0xFF9CA3AF), size: 20),
+                        border: InputBorder.none,
+                        contentPadding:
+                            EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        isDense: true,
+                      ),
+                      onChanged: (query) {
+                        itemsProvider.setSearchQuery(query);
+                      },
+                      onSubmitted: (query) {
+                        itemsProvider.setSearchQuery(query);
+                        MainNavigation.of(context)?.switchToTab(1);
+                      },
                     ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Colors.transparent),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide:
-                          const BorderSide(color: AppTheme.primary, width: 1.5),
-                    ),
-                    filled: true,
-                    fillColor: Colors.white,
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 14),
                   ),
-                  onChanged: (query) {
-                    itemsProvider.setSearchQuery(query);
-                  },
-                  onSubmitted: (query) {
-                    itemsProvider.setSearchQuery(query);
-                    MainNavigation.of(context)
-                        ?.switchToTab(1); // Switch to Browse
-                  },
-                ),
+                ],
               ),
             ),
           ),
@@ -161,32 +118,37 @@ class HomeScreen extends StatelessWidget {
           // Categories
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+              padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
                     'Categories',
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: AppTheme.foreground,
+                      color: Color(0xFF1F2937),
                     ),
                   ),
                   const SizedBox(height: 16),
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        _buildCategoryCard(
+                        _buildCategoryItem(
                             context, Icons.inventory_2_outlined, 'All', null),
-                        _buildCategoryCard(context, Icons.construction_outlined,
+                        const SizedBox(width: 16),
+                        _buildCategoryItem(context, Icons.construction_outlined,
                             'Tools', ItemCategory.tools),
-                        _buildCategoryCard(context, Icons.devices_outlined,
+                        const SizedBox(width: 16),
+                        _buildCategoryItem(context, Icons.devices_outlined,
                             'Appliances', ItemCategory.appliances),
-                        _buildCategoryCard(context, Icons.lightbulb_outline,
+                        const SizedBox(width: 16),
+                        _buildCategoryItem(context, Icons.lightbulb_outline,
                             'Skills', ItemCategory.skills),
-                        _buildCategoryCard(
+                        const SizedBox(width: 16),
+                        _buildCategoryItem(
                             context,
                             Icons.business_center_outlined,
                             'Services',
@@ -203,24 +165,30 @@ class HomeScreen extends StatelessWidget {
           if (nearbyItems.isNotEmpty) ...[
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                padding: const EdgeInsets.fromLTRB(16, 24, 16, 12),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text(
                       'Near You',
                       style: TextStyle(
-                        fontSize: 18,
+                        fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: AppTheme.foreground,
+                        color: Color(0xFF1F2937),
                       ),
                     ),
-                    TextButton(
-                      onPressed: () {
-                        MainNavigation.of(context)
-                            ?.switchToTab(1); // Switch to Browse
+                    GestureDetector(
+                      onTap: () {
+                        MainNavigation.of(context)?.switchToTab(1);
                       },
-                      child: const Text('See all'),
+                      child: const Text(
+                        'See all',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1F2937),
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -231,9 +199,9 @@ class HomeScreen extends StatelessWidget {
               sliver: SliverGrid(
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                  childAspectRatio: 0.7, // Taller card to prevent overflow
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: 0.72,
                 ),
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
@@ -263,37 +231,43 @@ class HomeScreen extends StatelessWidget {
           // Featured Items
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
+              padding: const EdgeInsets.fromLTRB(16, 24, 16, 12),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
                     'Featured',
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: AppTheme.foreground,
+                      color: Color(0xFF1F2937),
                     ),
                   ),
-                  TextButton(
-                    onPressed: () {
-                      MainNavigation.of(context)
-                          ?.switchToTab(1); // Switch to Browse
+                  GestureDetector(
+                    onTap: () {
+                      MainNavigation.of(context)?.switchToTab(1);
                     },
-                    child: const Text('See all'),
+                    child: const Text(
+                      'See all',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF1F2937),
+                      ),
+                    ),
                   ),
                 ],
               ),
             ),
           ),
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
             sliver: SliverGrid(
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                childAspectRatio: 0.7,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                childAspectRatio: 0.72,
               ),
               delegate: SliverChildBuilderDelegate(
                 (context, index) {
@@ -318,77 +292,111 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
           ),
+
+          // Kampung Spirit Banner
+          SliverToBoxAdapter(
+            child: Container(
+              margin: const EdgeInsets.fromLTRB(16, 32, 16, 40),
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: const Color(0xFFECFDF5), // Light green background
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFA7F3D0)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Reviving the Kampung Spirit 🏡',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF065F46),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'JiranLink connects neighbors to share resources, save money, and build a stronger community. Borrow what you need, share what you have.',
+                    style: TextStyle(
+                      fontSize: 13,
+                      height: 1.5,
+                      color: Color(0xFF374151),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      _buildTrustBadge('Verified Users'),
+                      const SizedBox(width: 12),
+                      _buildTrustBadge('Secure Payments'),
+                      const SizedBox(width: 12),
+                      _buildTrustBadge('Local Community'),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildCategoryCard(BuildContext context, IconData icon, String label,
+  Widget _buildCategoryItem(BuildContext context, IconData icon, String label,
       ItemCategory? category) {
-    // Check if this category is selected
     final isSelected =
         context.watch<ItemsProvider>().selectedCategory == category;
 
-    return Padding(
-      padding: const EdgeInsets.only(right: 12.0),
-      child: InkWell(
-        onTap: () {
-          context.read<ItemsProvider>().setCategory(category);
-          MainNavigation.of(context)?.switchToTab(1); // Switch to Browse
-        },
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          width: 80,
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: isSelected ? AppTheme.primary : Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              if (!isSelected)
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-            ],
-            border: Border.all(
-              color: isSelected ? AppTheme.primary : Colors.transparent,
+    return GestureDetector(
+      onTap: () {
+        context.read<ItemsProvider>().setCategory(category);
+        MainNavigation.of(context)?.switchToTab(1);
+      },
+      child: Column(
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? const Color(0xFFD1FAE5)
+                  : const Color(0xFFF3F4F6),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              icon,
+              color: const Color(0xFF10B981),
+              size: 24,
             ),
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? Colors.white.withOpacity(0.2)
-                      : const Color(0xFFF3F4F6),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  icon,
-                  color: isSelected ? Colors.white : AppTheme.primary,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                label,
-                style: TextStyle(
-                  color: isSelected ? Colors.white : AppTheme.foreground,
-                  fontSize: 12,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                ),
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: Color(0xFF4B5563),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTrustBadge(String text) {
+    return Row(
+      children: [
+        const Icon(Icons.check, size: 12, color: Color(0xFF059669)),
+        const SizedBox(width: 4),
+        Text(
+          text,
+          style: const TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF059669),
           ),
         ),
-      ),
+      ],
     );
   }
 }

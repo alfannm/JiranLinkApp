@@ -141,7 +141,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 children: [
                   TextButton(
                     onPressed: _handleSkip,
-                    child: Text(
+                    child: const Text(
                       'Skip',
                       style: TextStyle(color: AppTheme.mutedForeground),
                     ),

@@ -23,14 +23,14 @@ class ItemCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: AppTheme.cardBackground,
+          color: Colors.white,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppTheme.border),
+          border: Border.all(color: Colors.grey.withOpacity(0.2)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image
+            // Image Section
             Stack(
               children: [
                 ClipRRect(
@@ -42,13 +42,13 @@ class ItemCard extends StatelessWidget {
                       imageUrl: item.images.first,
                       fit: BoxFit.cover,
                       placeholder: (context, url) => Container(
-                        color: AppTheme.muted,
+                        color: Colors.grey[200],
                         child: const Center(
                           child: CircularProgressIndicator(),
                         ),
                       ),
                       errorWidget: (context, url, error) => Container(
-                        color: AppTheme.muted,
+                        color: Colors.grey[200],
                         child: const Icon(Icons.error),
                       ),
                     ),
@@ -62,37 +62,38 @@ class ItemCard extends StatelessWidget {
                   child: GestureDetector(
                     onTap: onToggleFavorite,
                     child: Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        color: AppTheme.cardBackground.withOpacity(0.9),
+                      width: 32,
+                      height: 32,
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
                         shape: BoxShape.circle,
-                        border: Border.all(color: AppTheme.border),
                       ),
                       child: Icon(
                         isFavorite ? Icons.favorite : Icons.favorite_border,
-                        color: isFavorite ? Colors.red : AppTheme.foreground,
-                        size: 20,
+                        color: isFavorite ? Colors.red : Colors.grey[600],
+                        size: 18,
                       ),
                     ),
                   ),
                 ),
 
-                // Type Badge
+                // Type Badge (Rent/Hire)
                 Positioned(
                   top: 8,
                   right: 8,
                   child: Container(
                     padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: AppTheme.primary,
-                      borderRadius: BorderRadius.circular(6),
+                      color: const Color(0xFF10B981), // Primary Green
+                      borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
-                      item.type.toString().split('.').last.toUpperCase(),
+                      item.type.toString().split('.').last == 'hire'
+                          ? 'Hire'
+                          : 'Rent',
                       style: const TextStyle(
-                        color: AppTheme.primaryForeground,
+                        color: Colors.white,
                         fontSize: 10,
                         fontWeight: FontWeight.w600,
                       ),
@@ -105,14 +106,17 @@ class ItemCard extends StatelessWidget {
                   Positioned.fill(
                     child: Container(
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.7),
+                        color: Colors.black.withOpacity(0.6),
                         borderRadius: const BorderRadius.vertical(
                             top: Radius.circular(12)),
                       ),
                       child: const Center(
-                        child: Chip(
-                          label: Text('Not Available'),
-                          backgroundColor: AppTheme.cardBackground,
+                        child: Text(
+                          'Unavailable',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
@@ -120,10 +124,10 @@ class ItemCard extends StatelessWidget {
               ],
             ),
 
-            // Content
+            // Content Section
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.all(10.0),
+                padding: const EdgeInsets.all(12.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -131,25 +135,28 @@ class ItemCard extends StatelessWidget {
                     Text(
                       item.title,
                       style: const TextStyle(
-                        color: AppTheme.foreground,
+                        color: Color(0xFF1F2937),
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
+                        height: 1.2,
                       ),
-                      maxLines: 1,
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 4),
 
                     // Description
                     Text(
                       item.description,
                       style: const TextStyle(
-                        color: AppTheme.mutedForeground,
+                        color: Color(0xFF6B7280),
                         fontSize: 12,
+                        height: 1.3,
                       ),
-                      maxLines: 1, // Reduced to 1 line to save space
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
+
                     const Spacer(),
 
                     // Location
@@ -158,14 +165,14 @@ class ItemCard extends StatelessWidget {
                         const Icon(
                           Icons.location_on,
                           size: 12,
-                          color: AppTheme.mutedForeground,
+                          color: Color(0xFF9CA3AF),
                         ),
                         const SizedBox(width: 2),
                         Expanded(
                           child: Text(
                             item.district,
                             style: const TextStyle(
-                              color: AppTheme.mutedForeground,
+                              color: Color(0xFF9CA3AF),
                               fontSize: 11,
                             ),
                             maxLines: 1,
@@ -174,11 +181,12 @@ class ItemCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 8),
 
                     // Price and Rating
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -186,17 +194,17 @@ class ItemCard extends StatelessWidget {
                             Text(
                               item.getPriceLabel(),
                               style: const TextStyle(
-                                color: AppTheme.primary,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF10B981), // Primary Green
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                             if (item.deposit != null)
                               Text(
                                 'Deposit: RM${item.deposit!.toInt()}',
                                 style: const TextStyle(
-                                  color: AppTheme.mutedForeground,
-                                  fontSize: 10,
+                                  color: Color(0xFF9CA3AF),
+                                  fontSize: 9,
                                 ),
                               ),
                           ],
@@ -213,8 +221,16 @@ class ItemCard extends StatelessWidget {
                               Text(
                                 item.rating!.toStringAsFixed(1),
                                 style: const TextStyle(
-                                  color: AppTheme.foreground,
+                                  color: Color(0xFF374151),
                                   fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              Text(
+                                ' (${item.reviewCount})',
+                                style: const TextStyle(
+                                  color: Color(0xFF9CA3AF),
+                                  fontSize: 10,
                                 ),
                               ),
                             ],

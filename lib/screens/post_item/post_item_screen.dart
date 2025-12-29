@@ -149,7 +149,7 @@ class _PostItemScreenState extends State<PostItemScreen> {
                 children: [
                   Expanded(
                     child: DropdownButtonFormField<ItemCategory>(
-                      value: _selectedCategory,
+                      initialValue: _selectedCategory,
                       decoration: const InputDecoration(
                         labelText: 'Category',
                         border: OutlineInputBorder(),
@@ -174,7 +174,7 @@ class _PostItemScreenState extends State<PostItemScreen> {
                   const SizedBox(width: 16),
                   Expanded(
                     child: DropdownButtonFormField<ItemType>(
-                      value: _selectedType,
+                      initialValue: _selectedType,
                       decoration: const InputDecoration(
                         labelText: 'Type',
                         border: OutlineInputBorder(),
@@ -221,7 +221,7 @@ class _PostItemScreenState extends State<PostItemScreen> {
                   Expanded(
                     flex: 2,
                     child: DropdownButtonFormField<PriceUnit>(
-                      value: _selectedPriceUnit,
+                      initialValue: _selectedPriceUnit,
                       decoration: const InputDecoration(
                         labelText: 'Per',
                         border: OutlineInputBorder(),

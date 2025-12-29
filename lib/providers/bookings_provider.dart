@@ -6,7 +6,7 @@ import '../data/mock_data.dart';
 
 class BookingsProvider extends ChangeNotifier {
   List<Booking> _bookings = [];
-  List<BookingRequest> _requests = [];
+  final List<BookingRequest> _requests = [];
 
   BookingsProvider() {
     _bookings = MockData.mockBookings;
