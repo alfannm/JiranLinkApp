@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import '../models/item.dart';
 import '../data/mock_data.dart';
 import 'dart:math' show cos, sqrt, asin;
+import '../services/location_service.dart';
 
 class ItemsProvider extends ChangeNotifier {
   List<Item> _items = [];
@@ -10,6 +11,8 @@ class ItemsProvider extends ChangeNotifier {
   double? _radiusFilter; // in kilometers
   double? _userLatitude;
   double? _userLongitude;
+
+  final LocationService _locationService = LocationService();
 
   ItemsProvider() {
     _items = MockData.mockItems;
@@ -20,6 +23,23 @@ class ItemsProvider extends ChangeNotifier {
   List<Item> get selectedCategoryItems => _items; // Placeholder if needed
   ItemCategory? get selectedCategory => _selectedCategory;
   String get searchQuery => _searchQuery;
+  double? get userLatitude => _userLatitude;
+  double? get userLongitude => _userLongitude;
+  double? get radiusFilter => _radiusFilter;
+
+  /// Ask for permission + fetch device location, then store it.
+  /// Returns true if a location was obtained.
+  Future<bool> detectAndSetUserLocation() async {
+    try {
+      final pos = await _locationService.getCurrentPosition();
+      _userLatitude = pos.latitude;
+      _userLongitude = pos.longitude;
+      notifyListeners();
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
 
   void setSearchQuery(String query) {
     _searchQuery = query;

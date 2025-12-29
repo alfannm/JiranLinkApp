@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../data/mock_data.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/items_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/item_card.dart';
 import '../item_details/item_detail_screen.dart';
@@ -11,13 +14,12 @@ class MyListingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     // Mock: Show items owned by current user (or some mock filter)
     // Using simple filter for now, assuming mockItems has owners.
-    final myListings = MockData.mockItems
-        .where((item) => item.owner.id == MockData.currentUser.id)
-        .toList();
+    final currentUser = context.watch<AuthProvider>().currentUser ?? MockData.currentUser;
+    final all = context.watch<ItemsProvider>().allItems;
+    final myListings = all.where((item) => item.owner.id == currentUser.id).toList();
 
     // If empty for mock, just show all for demo purposes or First 2
-    final displayItems =
-        myListings.isEmpty ? MockData.mockItems.take(2).toList() : myListings;
+    final displayItems = myListings;
 
     return Scaffold(
       appBar: AppBar(

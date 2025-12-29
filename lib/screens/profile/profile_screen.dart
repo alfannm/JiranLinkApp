@@ -209,7 +209,7 @@ class ProfileScreen extends StatelessWidget {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
-                    authProvider.logout();
+                    authProvider.signOut();
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,

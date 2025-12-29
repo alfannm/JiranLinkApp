@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../../providers/items_provider.dart';
 import '../../providers/favorites_provider.dart';
 import '../../data/mock_data.dart';
-import '../../theme/app_theme.dart';
+import '../../providers/auth_provider.dart';
 import '../../widgets/item_card.dart';
 import '../../models/item.dart';
 import '../item_details/item_detail_screen.dart';
@@ -16,7 +16,7 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final itemsProvider = context.watch<ItemsProvider>();
     final favoritesProvider = context.watch<FavoritesProvider>();
-    final currentUser = MockData.currentUser;
+    final currentUser = context.watch<AuthProvider>().currentUser ?? MockData.currentUser;
 
     final nearbyItems = itemsProvider.getNearbyItems(currentUser.district, 4);
     final featuredItems = itemsProvider.getFeaturedItems(6);

@@ -19,13 +19,90 @@ class _AuthScreenState extends State<AuthScreen> {
       _isLoading = true;
     });
 
-    await context.read<AuthProvider>().login(isGoogle: isGoogle);
+    final auth = context.read<AuthProvider>();
+    try {
+      if (isGoogle) {
+        await auth.signInWithGoogle();
+      } else {
+        await _showEmailAuthDialog(context);
+      }
+    } finally {
+      // Loading reset handled below
+    }
 
     if (!mounted) return;
 
     setState(() {
       _isLoading = false;
     });
+  }
+
+  Future<void> _showEmailAuthDialog(BuildContext context) async {
+    final emailController = TextEditingController();
+    final passwordController = TextEditingController();
+    final nameController = TextEditingController();
+
+    final auth = context.read<AuthProvider>();
+
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) {
+        return AlertDialog(
+          title: Text(_isLogin ? 'Sign in with Email' : 'Create account'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (!_isLogin)
+                TextField(
+                  controller: nameController,
+                  decoration: const InputDecoration(labelText: 'Name'),
+                ),
+              TextField(
+                controller: emailController,
+                decoration: const InputDecoration(labelText: 'Email'),
+                keyboardType: TextInputType.emailAddress,
+              ),
+              TextField(
+                controller: passwordController,
+                decoration: const InputDecoration(labelText: 'Password'),
+                obscureText: true,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(ctx).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final email = emailController.text.trim();
+                final pass = passwordController.text;
+                final name = nameController.text.trim();
+
+                try {
+                  if (_isLogin) {
+                    await auth.signInWithEmail(email, pass);
+                  } else {
+                    await auth.registerWithEmail(name, email, pass);
+                  }
+                  if (mounted) Navigator.of(ctx).pop();
+                } catch (e) {
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Auth failed: $e')),
+                  );
+                }
+              },
+              child: Text(_isLogin ? 'Sign in' : 'Create'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override

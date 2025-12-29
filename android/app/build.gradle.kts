@@ -1,6 +1,8 @@
 plugins {
     id("com.android.application")
     id("kotlin-android")
+    // Firebase
+    id("com.google.gms.google-services")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
@@ -28,6 +30,13 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+
+        // Google Maps API Key placeholder for AndroidManifest.xml
+        // Add this to android/local.properties:
+        // MAPS_API_KEY=YOUR_KEY_HERE
+        manifestPlaceholders += mapOf(
+            "MAPS_API_KEY" to (project.findProperty("MAPS_API_KEY") as String? ?: "")
+        )
     }
 
     buildTypes {

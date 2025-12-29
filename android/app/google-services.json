@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1044767177684",
+    "project_id": "jiranlinkapp",
+    "storage_bucket": "jiranlinkapp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1044767177684:android:9ff9c2fa7aa0dd7bf83441",
+        "android_client_info": {
+          "package_name": "com.example.jiranlink_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCdc55JLEHTbfyigljhcAQjEepnILcHqJY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

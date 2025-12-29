@@ -5,6 +5,7 @@ import '../../providers/items_provider.dart';
 import '../../providers/favorites_provider.dart';
 import '../../widgets/item_card.dart';
 import '../item_details/item_detail_screen.dart';
+import 'map_screen.dart';
 
 class BrowseScreen extends StatefulWidget {
   const BrowseScreen({super.key});
@@ -88,8 +89,13 @@ class _BrowseScreenState extends State<BrowseScreen> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: IconButton(
-                          icon: const Icon(Icons.filter_list),
-                          onPressed: () {},
+                          icon: const Icon(Icons.map_outlined),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const MapScreen()),
+                            );
+                          },
                         ),
                       ),
                     ],
@@ -104,7 +110,20 @@ class _BrowseScreenState extends State<BrowseScreen> {
                         _buildFilterButton(
                           icon: Icons.location_on_outlined,
                           label: 'Detect Nearby',
-                          isActive: true,
+                          isActive: itemsProvider.userLatitude != null,
+                          onTap: () async {
+                            final ok = await itemsProvider.detectAndSetUserLocation();
+                            if (!mounted) return;
+                            if (!ok) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Could not get location. Check GPS + permissions.')),
+                              );
+                              return;
+                            }
+
+                            // Set a reasonable default radius if none is set
+                            itemsProvider.setRadiusFilter(itemsProvider.radiusFilter ?? 10);
+                          },
                         ),
                         const SizedBox(width: 8),
                         _buildFilterDropdown('All Distances'),
@@ -193,8 +212,11 @@ class _BrowseScreenState extends State<BrowseScreen> {
     required IconData icon,
     required String label,
     bool isActive = false,
+    VoidCallback? onTap,
   }) {
-    return Container(
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -218,6 +240,7 @@ class _BrowseScreenState extends State<BrowseScreen> {
             ),
           ),
         ],
+      ),
       ),
     );
   }

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 import '../../theme/app_theme.dart';
 import '../../providers/items_provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../models/item.dart';
 import '../../data/mock_data.dart';
 
@@ -35,6 +36,7 @@ class _PostItemScreenState extends State<PostItemScreen> {
 
   void _submitForm() {
     if (_formKey.currentState!.validate()) {
+      final currentUser = context.read<AuthProvider>().currentUser ?? MockData.currentUser;
       final newItem = Item(
         id: const Uuid().v4(),
         title: _titleController.text,
@@ -49,8 +51,8 @@ class _PostItemScreenState extends State<PostItemScreen> {
         images: [
           'https://images.unsplash.com/photo-1581235720704-06d3acfcb36f?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3', // Placeholder
         ],
-        owner: MockData.currentUser,
-        district: MockData.currentUser.district,
+        owner: currentUser,
+        district: currentUser.district,
         address: '123 Jalan Ampang', // Mock address
         latitude: 3.1579,
         longitude: 101.7116,
