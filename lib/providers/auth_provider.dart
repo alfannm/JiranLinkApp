@@ -19,7 +19,7 @@ class AuthProvider extends ChangeNotifier {
   Future<void> login({bool isGoogle = true}) async {
     // Simulate login delay
     await Future.delayed(const Duration(milliseconds: 1500));
-    
+
     _isAuthenticated = true;
     _hasCompletedOnboarding = true;
     _currentUser = MockData.currentUser;

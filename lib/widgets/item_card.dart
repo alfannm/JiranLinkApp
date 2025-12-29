@@ -26,35 +26,40 @@ class ItemCard extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: Colors.grey.withOpacity(0.2)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 5,
+              offset: const Offset(0, 2),
+            )
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image Section
+            // 1. IMAGE SECTION (Fixed Height Ratio)
             Stack(
               children: [
                 ClipRRect(
-                  borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(12)),
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
                   child: AspectRatio(
-                    aspectRatio: 4 / 3,
+                    aspectRatio: 4 / 3, // Keeps image nice and standard
                     child: CachedNetworkImage(
-                      imageUrl: item.images.first,
+                      imageUrl: item.images.isNotEmpty 
+                          ? item.images.first 
+                          : 'https://placehold.co/400x300/png', // Fallback image
                       fit: BoxFit.cover,
                       placeholder: (context, url) => Container(
                         color: Colors.grey[200],
-                        child: const Center(
-                          child: CircularProgressIndicator(),
-                        ),
+                        child: const Center(child: CircularProgressIndicator()),
                       ),
                       errorWidget: (context, url, error) => Container(
                         color: Colors.grey[200],
-                        child: const Icon(Icons.error),
+                        child: const Icon(Icons.broken_image, color: Colors.grey),
                       ),
                     ),
                   ),
                 ),
-
                 // Favorite Button
                 Positioned(
                   top: 8,
@@ -67,6 +72,7 @@ class ItemCard extends StatelessWidget {
                       decoration: const BoxDecoration(
                         color: Colors.white,
                         shape: BoxShape.circle,
+                        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)],
                       ),
                       child: Icon(
                         isFavorite ? Icons.favorite : Icons.favorite_border,
@@ -76,67 +82,43 @@ class ItemCard extends StatelessWidget {
                     ),
                   ),
                 ),
-
-                // Type Badge (Rent/Hire)
+                // Type Badge
                 Positioned(
                   top: 8,
                   right: 8,
                   child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF10B981), // Primary Green
+                      color: const Color(0xFF10B981),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
-                      item.type.toString().split('.').last == 'hire'
-                          ? 'Hire'
-                          : 'Rent',
+                      item.type.toString().split('.').last == 'hire' ? 'Hire' : 'Rent',
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 10,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
                 ),
-
-                // Not Available Overlay
-                if (!item.available)
-                  Positioned.fill(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.6),
-                        borderRadius: const BorderRadius.vertical(
-                            top: Radius.circular(12)),
-                      ),
-                      child: const Center(
-                        child: Text(
-                          'Unavailable',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
               ],
             ),
 
-            // Content Section
+            // 2. CONTENT SECTION (Flexible Height)
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.all(12.0),
+                padding: const EdgeInsets.all(10.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min, // Important!
                   children: [
                     // Title
                     Text(
                       item.title,
                       style: const TextStyle(
                         color: Color(0xFF1F2937),
-                        fontSize: 14,
+                        fontSize: 13,
                         fontWeight: FontWeight.w600,
                         height: 1.2,
                       ),
@@ -144,31 +126,27 @@ class ItemCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
-
-                    // Description
+                    
+                    // Description (Restricted lines to prevent overflow)
                     Text(
                       item.description,
                       style: const TextStyle(
                         color: Color(0xFF6B7280),
-                        fontSize: 12,
-                        height: 1.3,
+                        fontSize: 11,
+                        height: 1.2,
                       ),
-                      maxLines: 2,
+                      maxLines: 1, // Reduced to 1 line to save space
                       overflow: TextOverflow.ellipsis,
                     ),
 
-                    const Spacer(),
+                    const Spacer(), // Pushes everything below to the bottom
 
-                    // Location
+                    // Location Row
                     Row(
                       children: [
-                        const Icon(
-                          Icons.location_on,
-                          size: 12,
-                          color: Color(0xFF9CA3AF),
-                        ),
+                        const Icon(Icons.location_on, size: 12, color: Color(0xFF9CA3AF)),
                         const SizedBox(width: 2),
-                        Expanded(
+                        Expanded( // Prevents text from pushing off screen
                           child: Text(
                             item.district,
                             style: const TextStyle(
@@ -181,60 +159,38 @@ class ItemCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 6),
 
-                    // Price and Rating
+                    // Price & Rating Row
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        Flexible( // Allows price to shrink if needed
+                          child: Text(
+                            item.getPriceLabel(),
+                            style: const TextStyle(
+                              color: Color(0xFF10B981),
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Row(
                           children: [
+                            const Icon(Icons.star, size: 14, color: Colors.amber),
+                            const SizedBox(width: 2),
                             Text(
-                              item.getPriceLabel(),
+                              item.rating != null ? item.rating!.toStringAsFixed(1) : 'New',
                               style: const TextStyle(
-                                color: Color(0xFF10B981), // Primary Green
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF374151),
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
-                            if (item.deposit != null)
-                              Text(
-                                'Deposit: RM${item.deposit!.toInt()}',
-                                style: const TextStyle(
-                                  color: Color(0xFF9CA3AF),
-                                  fontSize: 9,
-                                ),
-                              ),
                           ],
                         ),
-                        if (item.rating != null)
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.star,
-                                size: 14,
-                                color: Colors.amber,
-                              ),
-                              const SizedBox(width: 2),
-                              Text(
-                                item.rating!.toStringAsFixed(1),
-                                style: const TextStyle(
-                                  color: Color(0xFF374151),
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              Text(
-                                ' (${item.reviewCount})',
-                                style: const TextStyle(
-                                  color: Color(0xFF9CA3AF),
-                                  fontSize: 10,
-                                ),
-                              ),
-                            ],
-                          ),
                       ],
                     ),
                   ],
