@@ -12,7 +12,20 @@
           "package_name": "com.example.jiranlink_app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "1044767177684-p99p1sash8pq7ncjkhtrob00qdtjushg.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.jiranlink_app",
+            "certificate_hash": "c39fcee1231e90c358dc8295a14934fe7d49f5a7"
+          }
+        },
+        {
+          "client_id": "1044767177684-po2or542algrhe9dl85l82pdnquvvg69.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCdc55JLEHTbfyigljhcAQjEepnILcHqJY"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1044767177684-po2or542algrhe9dl85l82pdnquvvg69.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1044767177684-5f6asviodtvjmrl5pdutjqugi1jh2t3b.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.jiranlinkApp"
+              }
+            }
+          ]
         }
       }
     }
