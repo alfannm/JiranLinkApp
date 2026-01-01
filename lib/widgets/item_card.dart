@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../models/item.dart';
-import '../theme/app_theme.dart';
 
 class ItemCard extends StatelessWidget {
   final Item item;

@@ -475,7 +475,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
       children: [
         Text(
           label,
-          style: TextStyle(
+          style: const TextStyle(
             color: AppTheme.mutedForeground,
             fontWeight: FontWeight.w700,
             fontSize: 12.5,

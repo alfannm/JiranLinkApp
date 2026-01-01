@@ -13,9 +13,6 @@ import 'theme/app_theme.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // For "real auth" (FirebaseAuth) you MUST initialize Firebase.
-  // If you haven't added Firebase config files yet, the app will fail at runtime.
-  // See the setup steps at the end of this message.
   await Firebase.initializeApp();
 
   runApp(const MyApp());
