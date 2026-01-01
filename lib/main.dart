@@ -5,15 +5,18 @@ import 'providers/auth_provider.dart';
 import 'providers/items_provider.dart';
 import 'providers/favorites_provider.dart';
 import 'providers/bookings_provider.dart';
+import 'providers/messages_provider.dart';
 import 'screens/welcome/welcome_screen.dart';
-import 'screens/welcome/auth_screen.dart';
 import 'screens/main_navigation.dart';
 import 'theme/app_theme.dart';
+import 'firebase_options.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
   runApp(const MyApp());
 }
@@ -27,8 +30,19 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => ItemsProvider()),
-        ChangeNotifierProvider(create: (_) => FavoritesProvider()),
-        ChangeNotifierProvider(create: (_) => BookingsProvider()),
+        ChangeNotifierProxyProvider<AuthProvider, FavoritesProvider>(
+          create: (_) => FavoritesProvider(),
+          update: (_, auth, favorites) =>
+              favorites!..setUser(auth.currentUser),
+        ),
+        ChangeNotifierProxyProvider<AuthProvider, BookingsProvider>(
+          create: (_) => BookingsProvider(),
+          update: (_, auth, bookings) => bookings!..setUser(auth.currentUser),
+        ),
+        ChangeNotifierProxyProvider<AuthProvider, MessagesProvider>(
+          create: (_) => MessagesProvider(),
+          update: (_, auth, messages) => messages!..setUser(auth.currentUser),
+        ),
       ],
       child: Consumer<AuthProvider>(
         builder: (context, authProvider, _) {
@@ -38,11 +52,9 @@ class MyApp extends StatelessWidget {
             theme: AppTheme.lightTheme,
             home: authProvider.isInitializing
                 ? const _Splash()
-                : (!authProvider.hasCompletedOnboarding
-                    ? const WelcomeScreen()
-                    : (authProvider.isAuthenticated
-                        ? const MainNavigation()
-                        : const AuthScreen())),
+                : (authProvider.isAuthenticated
+                    ? const MainNavigation()
+                    : const WelcomeScreen()),
           );
         },
       ),

@@ -1,25 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../data/mock_data.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/items_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/item_card.dart';
 import '../item_details/item_detail_screen.dart';
+import '../../models/item.dart';
+import '../post_item/post_item_screen.dart';
 
 class MyListingsScreen extends StatelessWidget {
   const MyListingsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Mock: Show items owned by current user (or some mock filter)
-    // Using simple filter for now, assuming mockItems has owners.
-    final currentUser = context.watch<AuthProvider>().currentUser ?? MockData.currentUser;
+    final currentUser = context.watch<AuthProvider>().currentUser;
     final all = context.watch<ItemsProvider>().allItems;
-    final myListings = all.where((item) => item.owner.id == currentUser.id).toList();
-
-    // If empty for mock, just show all for demo purposes or First 2
-    final displayItems = myListings;
+    final myListings = currentUser == null
+        ? <Item>[]
+        : all.where((item) => item.owner.id == currentUser.id).toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -29,13 +27,15 @@ class MyListingsScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: () {
-              // Post new item flow (already in MainNavigation, but shortcut here is nice)
-              // Navigator.push...
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const PostItemScreen()),
+              );
             },
           )
         ],
       ),
-      body: displayItems.isEmpty
+      body: myListings.isEmpty
           ? const Center(child: Text('No listings yet'))
           : GridView.builder(
               padding: const EdgeInsets.all(16),
@@ -45,10 +45,10 @@ class MyListingsScreen extends StatelessWidget {
                 crossAxisSpacing: 16,
                 mainAxisSpacing: 16,
               ),
-              itemCount: displayItems.length,
+              itemCount: myListings.length,
               itemBuilder: (context, index) {
                 return ItemCard(
-                  item: displayItems[index],
+                  item: myListings[index],
                   isFavorite:
                       false, // My listings don't need fav toggle usually
                   onToggleFavorite: () {},
@@ -57,7 +57,7 @@ class MyListingsScreen extends StatelessWidget {
                       context,
                       MaterialPageRoute(
                         builder: (context) =>
-                            ItemDetailScreen(item: displayItems[index]),
+                            ItemDetailScreen(item: myListings[index]),
                       ),
                     );
                   },

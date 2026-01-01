@@ -1,10 +1,18 @@
-import 'package:flutter/foundation.dart';
-import '../models/item.dart';
-import '../data/mock_data.dart';
+import 'dart:async';
 import 'dart:math' show cos, sqrt, asin;
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
+import 'package:image_picker/image_picker.dart';
+
+import '../models/item.dart';
 import '../services/location_service.dart';
 
 class ItemsProvider extends ChangeNotifier {
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final FirebaseStorage _storage = FirebaseStorage.instance;
+
   List<Item> _items = [];
   String _searchQuery = '';
   ItemCategory? _selectedCategory;
@@ -13,9 +21,16 @@ class ItemsProvider extends ChangeNotifier {
   double? _userLongitude;
 
   final LocationService _locationService = LocationService();
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _itemsSub;
 
   ItemsProvider() {
-    _items = MockData.mockItems;
+    _listenToItems();
+  }
+
+  @override
+  void dispose() {
+    _itemsSub?.cancel();
+    super.dispose();
   }
 
   List<Item> get items => _filteredItems();
@@ -60,6 +75,48 @@ class ItemsProvider extends ChangeNotifier {
   void setRadiusFilter(double? radius) {
     _radiusFilter = radius;
     notifyListeners();
+  }
+
+  void _listenToItems() {
+    _itemsSub?.cancel();
+    _itemsSub = _db
+        .collection('items')
+        .orderBy('postedDate', descending: true)
+        .snapshots()
+        .listen((snapshot) {
+      _items = snapshot.docs.map(Item.fromFirestore).toList();
+      notifyListeners();
+    });
+  }
+
+  Future<List<String>> _uploadImages({
+    required String itemId,
+    required List<XFile> images,
+  }) async {
+    final urls = <String>[];
+    for (var i = 0; i < images.length; i++) {
+      final file = images[i];
+      final path = 'items/$itemId/${DateTime.now().millisecondsSinceEpoch}_$i';
+      final ref = _storage.ref().child(path);
+      final uploadTask = ref.putData(await file.readAsBytes());
+      final snapshot = await uploadTask;
+      final url = await snapshot.ref.getDownloadURL();
+      urls.add(url);
+    }
+    return urls;
+  }
+
+  Future<void> createItem({
+    required Item item,
+    required List<XFile> images,
+  }) async {
+    final docRef = _db.collection('items').doc(item.id);
+    final imageUrls =
+        images.isEmpty ? <String>[] : await _uploadImages(itemId: docRef.id, images: images);
+    final itemData = item.toJson();
+    itemData['images'] = imageUrls;
+    itemData['postedDate'] = DateTime.now();
+    await docRef.set(itemData);
   }
 
   List<Item> _filteredItems() {
@@ -130,10 +187,5 @@ class ItemsProvider extends ChangeNotifier {
     } catch (e) {
       return null;
     }
-  }
-
-  void addItem(Item item) {
-    _items.add(item);
-    notifyListeners();
   }
 }

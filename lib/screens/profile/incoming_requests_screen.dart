@@ -1,20 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../../data/mock_data.dart';
+import 'package:provider/provider.dart';
 import '../../theme/app_theme.dart';
 import '../../models/booking.dart';
+import '../../providers/bookings_provider.dart';
 
 class IncomingRequestsScreen extends StatelessWidget {
   const IncomingRequestsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Mock: Show pending bookings as incoming requests
-    // Ideally we filter by bookings where owner == currentUser
-    // But MockData might not have enough, so we'll just show pending ones.
-    final requests = MockData.mockBookings
-        .where((b) => b.status == BookingStatus.pending)
-        .toList();
+    final requests = context.watch<BookingsProvider>().incomingRequests;
 
     return Scaffold(
       appBar: AppBar(
@@ -43,6 +39,7 @@ class RequestCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dateFormat = DateFormat('MMM d, y');
+    final provider = context.read<BookingsProvider>();
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -141,7 +138,9 @@ class RequestCard extends StatelessWidget {
             children: [
               Expanded(
                 child: OutlinedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    provider.rejectRequest(booking.id);
+                  },
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppTheme.destructive,
                     side: const BorderSide(color: AppTheme.destructive),
@@ -152,7 +151,9 @@ class RequestCard extends StatelessWidget {
               const SizedBox(width: 16),
               Expanded(
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    provider.acceptRequest(booking.id);
+                  },
                   child: const Text('Accept'),
                 ),
               ),

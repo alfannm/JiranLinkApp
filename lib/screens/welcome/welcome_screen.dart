@@ -18,8 +18,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   void _handleNext() {
     if (_currentSlide < onboardingSlides.length - 1) {
       _pageController.nextPage(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
+        duration: const Duration(milliseconds: 450),
+        curve: Curves.easeOutCubic,
       );
     } else {
       setState(() {
@@ -49,6 +49,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             Expanded(
               child: PageView.builder(
                 controller: _pageController,
+                physics: const BouncingScrollPhysics(),
                 onPageChanged: (index) {
                   setState(() {
                     _currentSlide = index;
@@ -104,28 +105,46 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 48),
-                        
-                        // Indicators
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: List.generate(
-                            onboardingSlides.length,
-                            (dotIndex) => AnimatedContainer(
-                              duration: const Duration(milliseconds: 300),
-                              margin: const EdgeInsets.symmetric(horizontal: 4),
-                              width: dotIndex == index ? 32 : 8,
-                              height: 8,
-                              decoration: BoxDecoration(
-                                color: dotIndex == index
-                                    ? AppTheme.primary
-                                    : AppTheme.muted,
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                            ),
-                          ),
-                        ),
                       ],
                     ),
+                  );
+                },
+              ),
+            ),
+
+            // Indicators
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: AnimatedBuilder(
+                animation: _pageController,
+                builder: (context, child) {
+                  final page = _pageController.hasClients
+                      ? (_pageController.page ?? _currentSlide.toDouble())
+                      : _currentSlide.toDouble();
+
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(onboardingSlides.length, (index) {
+                      final distance = (page - index).abs().clamp(0.0, 1.0);
+                      final t = 1.0 - distance;
+                      final eased = Curves.easeOutCubic.transform(t);
+                      final width = 8 + (24 * eased);
+                      final color = Color.lerp(
+                        AppTheme.muted,
+                        AppTheme.primary,
+                        eased,
+                      )!;
+
+                      return Container(
+                        width: width,
+                        height: 8,
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        decoration: BoxDecoration(
+                          color: color,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      );
+                    }),
                   );
                 },
               ),

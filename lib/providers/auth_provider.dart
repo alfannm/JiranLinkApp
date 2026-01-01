@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -16,17 +19,21 @@ import '../models/user.dart' as app;
 /// - iOS: ios/Runner/GoogleService-Info.plist
 class AuthProvider extends ChangeNotifier {
   static const _prefsOnboardingKey = 'hasCompletedOnboarding';
+  static const _prefsOnboardingVersionKey = 'onboardingVersion';
+  static const _onboardingVersion = 1;
 
   final fb.FirebaseAuth _auth = fb.FirebaseAuth.instance;
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   bool _hasCompletedOnboarding = false;
   bool _isInitializing = true;
   app.User? _currentUser;
+  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _userSub;
 
   bool get hasCompletedOnboarding => _hasCompletedOnboarding;
   bool get isInitializing => _isInitializing;
-  bool get isAuthenticated => _auth.currentUser != null;
+  bool get isAuthenticated => _currentUser != null;
   app.User? get currentUser => _currentUser;
 
   AuthProvider() {
@@ -36,12 +43,29 @@ class AuthProvider extends ChangeNotifier {
   Future<void> _init() async {
     // Load onboarding state
     final prefs = await SharedPreferences.getInstance();
-    _hasCompletedOnboarding = prefs.getBool(_prefsOnboardingKey) ?? false;
+    final storedVersion = prefs.getInt(_prefsOnboardingVersionKey);
+    final isCurrentVersion = storedVersion == _onboardingVersion;
+    _hasCompletedOnboarding =
+        (prefs.getBool(_prefsOnboardingKey) ?? false) && isCurrentVersion;
+
+    final existingUser = _auth.currentUser;
+    if (existingUser != null) {
+      await _ensureUserDoc(existingUser);
+      _bindUserDoc(existingUser);
+    }
 
     // Listen to auth changes
-    _auth.authStateChanges().listen((fb.User? user) {
-      _currentUser = user == null ? null : _mapFirebaseUserToAppUser(user);
-      notifyListeners();
+    _auth.authStateChanges().listen((fb.User? user) async {
+      if (user == null) {
+        _userSub?.cancel();
+        _userSub = null;
+        _currentUser = null;
+        notifyListeners();
+        return;
+      }
+
+      await _ensureUserDoc(user);
+      _bindUserDoc(user);
     });
 
     _isInitializing = false;
@@ -52,6 +76,7 @@ class AuthProvider extends ChangeNotifier {
     _hasCompletedOnboarding = true;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_prefsOnboardingKey, true);
+    await prefs.setInt(_prefsOnboardingVersionKey, _onboardingVersion);
     notifyListeners();
   }
 
@@ -70,13 +95,21 @@ class AuthProvider extends ChangeNotifier {
     );
 
     await _auth.signInWithCredential(credential);
-    await completeOnboarding();
+    final user = _auth.currentUser;
+    if (user != null) {
+      await _ensureUserDoc(user);
+      _bindUserDoc(user);
+    }
   }
 
   /// Email/password sign-in using FirebaseAuth.
   Future<void> signInWithEmail(String email, String password) async {
     await _auth.signInWithEmailAndPassword(email: email, password: password);
-    await completeOnboarding();
+    final user = _auth.currentUser;
+    if (user != null) {
+      await _ensureUserDoc(user);
+      _bindUserDoc(user);
+    }
   }
 
   /// Email/password registration using FirebaseAuth.
@@ -91,7 +124,11 @@ class AuthProvider extends ChangeNotifier {
       await cred.user!.reload();
     }
 
-    await completeOnboarding();
+    final user = _auth.currentUser;
+    if (user != null) {
+      await _ensureUserDoc(user);
+      _bindUserDoc(user);
+    }
   }
 
   Future<void> signOut() async {
@@ -102,13 +139,17 @@ class AuthProvider extends ChangeNotifier {
       // ignore
     }
     await _auth.signOut();
+    _userSub?.cancel();
+    _userSub = null;
     notifyListeners();
   }
 
-  app.User _mapFirebaseUserToAppUser(fb.User user) {
-    // Minimal mapping for your current app model.
-    // You can later extend this by loading profile fields from Firestore.
-    return app.User(
+  Future<void> _ensureUserDoc(fb.User user) async {
+    final docRef = _db.collection('users').doc(user.uid);
+    final snap = await docRef.get();
+    if (snap.exists) return;
+
+    final newUser = app.User(
       id: user.uid,
       name: user.displayName ?? 'User',
       email: user.email ?? '',
@@ -119,5 +160,16 @@ class AuthProvider extends ChangeNotifier {
       rating: 0,
       reviewCount: 0,
     );
+
+    await docRef.set(newUser.toJson());
+  }
+
+  void _bindUserDoc(fb.User user) {
+    _userSub?.cancel();
+    _userSub = _db.collection('users').doc(user.uid).snapshots().listen((snap) {
+      if (!snap.exists) return;
+      _currentUser = app.User.fromFirestore(snap);
+      notifyListeners();
+    });
   }
 }

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../data/mock_data.dart';
-import '../../theme/app_theme.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+
+import '../../providers/messages_provider.dart';
+import '../../theme/app_theme.dart';
 import 'chat_screen.dart';
 
 class MessagesScreen extends StatelessWidget {
@@ -9,14 +11,14 @@ class MessagesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final messages = MockData.mockMessages;
+    final threads = context.watch<MessagesProvider>().threads;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Messages'),
         backgroundColor: AppTheme.cardBackground,
       ),
-      body: messages.isEmpty
+      body: threads.isEmpty
           ? const Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -44,25 +46,27 @@ class MessagesScreen extends StatelessWidget {
               ),
             )
           : ListView.separated(
-              itemCount: messages.length,
+              itemCount: threads.length,
               separatorBuilder: (context, index) => const Divider(
                 height: 1,
                 color: AppTheme.border,
               ),
               itemBuilder: (context, index) {
-                final message = messages[index];
+                final thread = threads[index];
                 final timeAgo =
-                    DateFormat('MMM d, h:mm a').format(message.timestamp);
+                    DateFormat('MMM d, h:mm a').format(thread.lastTimestamp);
 
                 return ListTile(
                   leading: CircleAvatar(
-                    backgroundImage: message.from.avatar != null
-                        ? NetworkImage(message.from.avatar!)
+                    backgroundImage: thread.otherUserAvatar != null
+                        ? NetworkImage(thread.otherUserAvatar!)
                         : null,
                     backgroundColor: AppTheme.primary,
-                    child: message.from.avatar == null
+                    child: thread.otherUserAvatar == null
                         ? Text(
-                            message.from.name[0].toUpperCase(),
+                            thread.otherUserName.isNotEmpty
+                                ? thread.otherUserName[0].toUpperCase()
+                                : '?',
                             style: const TextStyle(color: Colors.white),
                           )
                         : null,
@@ -71,16 +75,16 @@ class MessagesScreen extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          message.from.name,
+                          thread.otherUserName,
                           style: TextStyle(
                             color: AppTheme.foreground,
-                            fontWeight: message.unread
+                            fontWeight: thread.unreadCount > 0
                                 ? FontWeight.w600
                                 : FontWeight.w400,
                           ),
                         ),
                       ),
-                      if (message.unread)
+                      if (thread.unreadCount > 0)
                         Container(
                           width: 8,
                           height: 8,
@@ -94,19 +98,19 @@ class MessagesScreen extends StatelessWidget {
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (message.item != null)
+                      if (thread.itemTitle != null)
                         Text(
-                          message.item!.title,
+                          thread.itemTitle!,
                           style: const TextStyle(
                             color: AppTheme.primary,
                             fontSize: 12,
                           ),
                         ),
                       Text(
-                        message.lastMessage,
+                        thread.lastMessage,
                         style: TextStyle(
                           color: AppTheme.mutedForeground,
-                          fontWeight: message.unread
+                          fontWeight: thread.unreadCount > 0
                               ? FontWeight.w500
                               : FontWeight.w400,
                         ),
@@ -127,7 +131,10 @@ class MessagesScreen extends StatelessWidget {
                       context,
                       MaterialPageRoute(
                         builder: (context) => ChatScreen(
-                          otherUser: message.from,
+                          chatId: thread.id,
+                          otherUserId: thread.otherUserId,
+                          otherUserName: thread.otherUserName,
+                          otherUserAvatar: thread.otherUserAvatar,
                         ),
                       ),
                     );

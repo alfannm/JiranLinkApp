@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:provider/provider.dart';
+import 'package:flutter/services.dart';
 import '../../models/item.dart';
 import '../../theme/app_theme.dart';
 
 import '../messages/chat_screen.dart';
+import '../../providers/favorites_provider.dart';
+import '../../providers/bookings_provider.dart';
+import '../../providers/auth_provider.dart';
 
 class ItemDetailScreen extends StatelessWidget {
   final Item item;
@@ -13,6 +18,9 @@ class ItemDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final owner = item.owner;
+    final favorites = context.watch<FavoritesProvider>();
+    final bookings = context.read<BookingsProvider>();
+    final currentUser = context.watch<AuthProvider>().currentUser;
 
     return Scaffold(
       body: CustomScrollView(
@@ -27,7 +35,9 @@ class ItemDetailScreen extends StatelessWidget {
                 fit: StackFit.expand,
                 children: [
                   CachedNetworkImage(
-                    imageUrl: item.images.first,
+                    imageUrl: item.images.isNotEmpty
+                        ? item.images.first
+                        : 'https://placehold.co/1200x800/png',
                     fit: BoxFit.cover,
                     placeholder: (context, url) =>
                         Container(color: AppTheme.muted),
@@ -63,11 +73,23 @@ class ItemDetailScreen extends StatelessWidget {
             actions: [
               IconButton(
                 icon: const Icon(Icons.share_outlined, color: Colors.white),
-                onPressed: () {},
+                onPressed: () {
+                  Clipboard.setData(ClipboardData(text: item.title));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Item title copied to clipboard.')),
+                  );
+                },
               ),
               IconButton(
-                icon: const Icon(Icons.favorite_border, color: Colors.white),
-                onPressed: () {},
+                icon: Icon(
+                  favorites.isFavorite(item.id)
+                      ? Icons.favorite
+                      : Icons.favorite_border,
+                  color: Colors.white,
+                ),
+                onPressed: () {
+                  favorites.toggleFavorite(item.id);
+                },
               ),
             ],
           ),
@@ -291,8 +313,12 @@ class ItemDetailScreen extends StatelessWidget {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) =>
-                                    ChatScreen(otherUser: owner),
+                                builder: (context) => ChatScreen(
+                                  otherUserId: owner.id,
+                                  otherUserName: owner.name,
+                                  otherUserAvatar: owner.avatar,
+                                  item: item,
+                                ),
                               ),
                             );
                           },
@@ -334,7 +360,12 @@ class ItemDetailScreen extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => ChatScreen(otherUser: owner),
+                        builder: (context) => ChatScreen(
+                          otherUserId: owner.id,
+                          otherUserName: owner.name,
+                          otherUserAvatar: owner.avatar,
+                          item: item,
+                        ),
                       ),
                     );
                   },
@@ -348,11 +379,20 @@ class ItemDetailScreen extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
                   onPressed: () {
+                    if (currentUser == null) return;
+                    bookings.createBookingRequest(
+                      item: item,
+                      borrower: currentUser,
+                      message: 'Hi, I would like to request ${item.title}.',
+                    );
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => ChatScreen(
-                          otherUser: owner,
+                          otherUserId: owner.id,
+                          otherUserName: owner.name,
+                          otherUserAvatar: owner.avatar,
+                          item: item,
                           initialMessage:
                               'Hi, I would like to request ${item.title}.',
                         ),

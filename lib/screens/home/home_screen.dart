@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/items_provider.dart';
 import '../../providers/favorites_provider.dart';
-import '../../data/mock_data.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/item_card.dart';
 import '../../models/item.dart';
@@ -16,7 +15,13 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final itemsProvider = context.watch<ItemsProvider>();
     final favoritesProvider = context.watch<FavoritesProvider>();
-    final currentUser = context.watch<AuthProvider>().currentUser ?? MockData.currentUser;
+    final currentUser = context.watch<AuthProvider>().currentUser;
+
+    if (currentUser == null) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
 
     final nearbyItems = itemsProvider.getNearbyItems(currentUser.district, 4);
     final featuredItems = itemsProvider.getFeaturedItems(6);

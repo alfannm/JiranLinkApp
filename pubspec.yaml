@@ -29,6 +29,8 @@ dependencies:
   google_sign_in: ^6.2.1
   firebase_core: ^3.0.0
   firebase_auth: ^5.0.0
+  cloud_firestore: ^5.4.4
+  firebase_storage: ^12.3.7
   
   # Network & Images
   http: ^1.1.2

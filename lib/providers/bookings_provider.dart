@@ -1,82 +1,153 @@
+import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
+
 import '../models/booking.dart';
 import '../models/item.dart';
-import '../models/user.dart';
-import '../data/mock_data.dart';
+import '../models/user.dart' as app;
 
 class BookingsProvider extends ChangeNotifier {
-  List<Booking> _bookings = [];
-  final List<BookingRequest> _requests = [];
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  BookingsProvider() {
-    _bookings = MockData.mockBookings;
+  app.User? _currentUser;
+  final Map<String, Booking> _bookingMap = {};
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _borrowerSub;
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _ownerSub;
+
+  List<Booking> get bookings =>
+      _bookingMap.values.toList()..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+  List<Booking> get myBookings {
+    final user = _currentUser;
+    if (user == null) return [];
+    return bookings.where((b) => b.borrower.id == user.id).toList();
   }
 
-  List<Booking> get bookings => _bookings;
-  List<BookingRequest> get requests => _requests;
-  
-  int get pendingRequestsCount =>
-      _requests.where((r) => r.status == BookingRequestStatus.pending).length;
+  List<Booking> get incomingRequests {
+    final user = _currentUser;
+    if (user == null) return [];
+    return bookings
+        .where((b) => b.owner.id == user.id && b.status == BookingStatus.pending)
+        .toList();
+  }
 
-  void createBookingRequest({
+  int get pendingRequestsCount => incomingRequests.length;
+
+  void setUser(app.User? user) {
+    if (user?.id == _currentUser?.id) return;
+    _currentUser = user;
+    _bookingMap.clear();
+    _borrowerSub?.cancel();
+    _ownerSub?.cancel();
+    _borrowerSub = null;
+    _ownerSub = null;
+
+    if (_currentUser == null) {
+      notifyListeners();
+      return;
+    }
+
+    _borrowerSub = _db
+        .collection('bookings')
+        .where('borrowerId', isEqualTo: _currentUser!.id)
+        .snapshots()
+        .listen(_mergeBookings);
+
+    _ownerSub = _db
+        .collection('bookings')
+        .where('ownerId', isEqualTo: _currentUser!.id)
+        .snapshots()
+        .listen(_mergeBookings);
+  }
+
+  void _mergeBookings(QuerySnapshot<Map<String, dynamic>> snapshot) {
+    for (final doc in snapshot.docs) {
+      _bookingMap[doc.id] = Booking.fromFirestore(doc);
+    }
+    notifyListeners();
+  }
+
+  Future<void> createBookingRequest({
     required Item item,
-    required User borrower,
+    required app.User borrower,
     String? message,
-  }) {
-    final request = BookingRequest(
-      id: 'req-${DateTime.now().millisecondsSinceEpoch}',
+  }) async {
+    final docRef = _db.collection('bookings').doc();
+    final totalDays = _estimateTotalDays(item);
+    final total = item.price * totalDays;
+    final booking = Booking(
+      id: docRef.id,
       item: item,
       borrower: borrower,
       owner: item.owner,
       startDate: DateTime.now(),
-      endDate: DateTime.now().add(const Duration(days: 7)),
-      status: BookingRequestStatus.pending,
-      totalPrice: item.price * 7,
-      message: message ?? "Hi! I'd like to ${item.type.toString().split('.').last} your ${item.title}.",
+      endDate: DateTime.now().add(Duration(days: totalDays)),
+      status: BookingStatus.pending,
+      paymentStatus: PaymentStatus.pending,
+      depositAmount: item.deposit,
+      rentAmount: item.price,
+      currency: 'MYR',
+      totalPrice: total,
       createdAt: DateTime.now(),
     );
 
-    _requests.insert(0, request);
-    notifyListeners();
+    final data = booking.toJson();
+    data['requestMessage'] = message;
+
+    await docRef.set(data);
   }
 
-  void acceptRequest(String requestId) {
-    final index = _requests.indexWhere((r) => r.id == requestId);
-    if (index != -1) {
-      final request = _requests[index];
-      _requests[index] = BookingRequest(
-        id: request.id,
-        item: request.item,
-        borrower: request.borrower,
-        owner: request.owner,
-        startDate: request.startDate,
-        endDate: request.endDate,
-        status: BookingRequestStatus.accepted,
-        totalPrice: request.totalPrice,
-        message: request.message,
-        createdAt: request.createdAt,
-      );
-      notifyListeners();
+  Future<void> acceptRequest(String bookingId) async {
+    await _db.collection('bookings').doc(bookingId).update({
+      'status': BookingStatus.accepted.toString().split('.').last,
+    });
+  }
+
+  Future<void> rejectRequest(String bookingId) async {
+    await _db.collection('bookings').doc(bookingId).update({
+      'status': BookingStatus.rejected.toString().split('.').last,
+    });
+  }
+
+  Future<void> markPaymentReceived(String bookingId) async {
+    await _db.collection('bookings').doc(bookingId).update({
+      'paymentStatus': PaymentStatus.paid.toString().split('.').last,
+      'status': BookingStatus.active.toString().split('.').last,
+    });
+  }
+
+  Future<void> completeBooking(String bookingId) async {
+    await _db.collection('bookings').doc(bookingId).update({
+      'status': BookingStatus.completed.toString().split('.').last,
+    });
+  }
+
+  Future<void> cancelBooking(String bookingId) async {
+    await _db.collection('bookings').doc(bookingId).update({
+      'status': BookingStatus.cancelled.toString().split('.').last,
+    });
+  }
+
+  int _estimateTotalDays(Item item) {
+    switch (item.priceUnit) {
+      case PriceUnit.hour:
+        return 1;
+      case PriceUnit.day:
+        return 7;
+      case PriceUnit.week:
+        return 7;
+      case PriceUnit.month:
+        return 30;
+      case PriceUnit.job:
+        return 1;
     }
   }
 
-  void rejectRequest(String requestId) {
-    final index = _requests.indexWhere((r) => r.id == requestId);
-    if (index != -1) {
-      final request = _requests[index];
-      _requests[index] = BookingRequest(
-        id: request.id,
-        item: request.item,
-        borrower: request.borrower,
-        owner: request.owner,
-        startDate: request.startDate,
-        endDate: request.endDate,
-        status: BookingRequestStatus.rejected,
-        totalPrice: request.totalPrice,
-        message: request.message,
-        createdAt: request.createdAt,
-      );
-      notifyListeners();
-    }
+  @override
+  void dispose() {
+    _borrowerSub?.cancel();
+    _ownerSub?.cancel();
+    super.dispose();
   }
 }

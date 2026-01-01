@@ -13,6 +13,7 @@ class AuthScreen extends StatefulWidget {
 class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
   bool _isLogin = true;
   bool _isLoading = false;
+  int _slideDirection = 1;
 
   // Login form
   final _loginKey = GlobalKey<FormState>();
@@ -44,6 +45,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
   void _switchTab(bool toLogin) {
     if (_isLogin == toLogin) return;
     setState(() {
+      _slideDirection = toLogin ? -1 : 1;
       _isLogin = toLogin;
     });
   }
@@ -113,209 +115,206 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.background,
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // App Logo
-                Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [AppTheme.primary, AppTheme.primaryDark],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppTheme.primary.withOpacity(0.3),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
-                  ),
-                  child: const Icon(
-                    Icons.handshake_outlined,
-                    size: 48,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                Text(
-                  'JiranLink',
-                  style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                        color: AppTheme.foreground,
-                      ),
-                ),
-                const SizedBox(height: 8),
-
-                Text(
-                  'Share resources, build community',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppTheme.mutedForeground,
-                      ),
-                ),
-                const SizedBox(height: 48),
-
-                // Auth Card
-                Container(
-                  constraints: const BoxConstraints(maxWidth: 420),
-                  padding: const EdgeInsets.all(28),
-                  decoration: BoxDecoration(
-                    color: AppTheme.cardBackground,
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: AppTheme.border),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.3),
-                        blurRadius: 30,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      // Toggle Login/Register (retain style)
-                      Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: AppTheme.secondary,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: _buildToggleButton(
-                                'Login',
-                                _isLogin,
-                                () => _switchTab(true),
-                              ),
-                            ),
-                            Expanded(
-                              child: _buildToggleButton(
-                                'Register',
-                                !_isLogin,
-                                () => _switchTab(false),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 26),
-
-                      // Header
-                      AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 220),
-                        switchInCurve: Curves.easeOut,
-                        switchOutCurve: Curves.easeIn,
-                        child: Column(
-                          key: ValueKey(_isLogin ? 'loginHeader' : 'registerHeader'),
-                          children: [
-                            Text(
-                              _isLogin ? 'Welcome Back' : 'Create Account',
-                              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                    color: AppTheme.foreground,
-                                  ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              _isLogin
-                                  ? 'Sign in to continue sharing and borrowing'
-                                  : 'Join JiranLink and start building community connections',
-                              style: Theme.of(context).textTheme.bodySmall,
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 22),
-
-                      // Static forms (no expand/collapse)
-                      AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 220),
-                        switchInCurve: Curves.easeOut,
-                        switchOutCurve: Curves.easeIn,
-                        child: _isLogin
-                            ? Container(
-                                key: const ValueKey('loginForm'),
-                                child: _loginForm(context),
-                              )
-                            : Container(
-                                key: const ValueKey('registerForm'),
-                                child: _registerForm(context),
-                              ),
-                      ),
-
-                      const SizedBox(height: 18),
-
-                      const Divider(color: AppTheme.border),
-                      const SizedBox(height: 14),
-
-                      // Google button under divider
-                      SizedBox(
-                        width: double.infinity,
-                        height: 54,
-                        child: ElevatedButton(
-                          onPressed: _isLoading ? null : () => _handleGoogle(context),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            foregroundColor: AppTheme.foreground,
-                            elevation: 0,
-                            side: const BorderSide(color: AppTheme.border),
-                          ),
-                          child: _isLoading
-                              ? const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: AppTheme.primary,
-                                  ),
-                                )
-                              : Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Image.network(
-                                      'https://www.google.com/favicon.ico',
-                                      width: 24,
-                                      height: 24,
-                                      errorBuilder: (context, error, stackTrace) {
-                                        return const Icon(Icons.g_mobiledata, size: 24);
-                                      },
-                                    ),
-                                    const SizedBox(width: 12),
-                                    const Text(
-                                      'Continue with Google',
-                                      style: TextStyle(fontWeight: FontWeight.w700),
-                                    ),
-                                  ],
-                                ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 18),
-
-                      // Terms
-                      Text(
-                        'By continuing, you agree to our Terms of Service and Privacy Policy',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              fontSize: 11,
-                            ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+      body: Stack(
+        children: [
+          Positioned(
+            top: -120,
+            right: -80,
+            child: _GlowBlob(
+              size: 260,
+              color: AppTheme.primary.withOpacity(0.18),
             ),
           ),
-        ),
+          Positioned(
+            bottom: -140,
+            left: -60,
+            child: _GlowBlob(
+              size: 280,
+              color: AppTheme.primaryDark.withOpacity(0.18),
+            ),
+          ),
+          SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // App Logo
+                    TweenAnimationBuilder<double>(
+                      tween: Tween(begin: 0.92, end: 1),
+                      duration: const Duration(milliseconds: 420),
+                      curve: Curves.easeOutCubic,
+                      builder: (context, value, child) => Transform.scale(
+                        scale: value,
+                        child: child,
+                      ),
+                      child: Container(
+                        width: 84,
+                        height: 84,
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [AppTheme.primary, AppTheme.primaryDark],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(18),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppTheme.primary.withOpacity(0.32),
+                              blurRadius: 24,
+                              offset: const Offset(0, 12),
+                            ),
+                          ],
+                        ),
+                        child: const Icon(
+                          Icons.handshake_outlined,
+                          size: 50,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 22),
+
+                    Text(
+                      'JiranLink',
+                      style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                            color: AppTheme.foreground,
+                          ),
+                    ),
+                    const SizedBox(height: 8),
+
+                    Text(
+                      'Share resources, build community',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: AppTheme.mutedForeground,
+                          ),
+                    ),
+                    const SizedBox(height: 42),
+
+                    // Auth Card
+                    Container(
+                      constraints: const BoxConstraints(maxWidth: 440),
+                      padding: const EdgeInsets.all(28),
+                      decoration: BoxDecoration(
+                        color: AppTheme.cardBackground,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: AppTheme.border),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.25),
+                            blurRadius: 30,
+                            offset: const Offset(0, 12),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          _buildSegmentedToggle(),
+                          const SizedBox(height: 24),
+
+                          ClipRect(
+                            child: AnimatedSize(
+                              duration: const Duration(milliseconds: 360),
+                              curve: Curves.easeOutCubic,
+                              alignment: Alignment.topCenter,
+                              child: AnimatedSwitcher(
+                                duration: const Duration(milliseconds: 360),
+                                switchInCurve: Curves.easeOutCubic,
+                                switchOutCurve: Curves.easeInCubic,
+                                transitionBuilder: (child, anim) {
+                                  final isIncoming = child.key ==
+                                      ValueKey(_isLogin ? 'login' : 'register');
+                                  final offset = Offset(-0.18 * _slideDirection, 0);
+                                  final slideTween = Tween<Offset>(
+                                    begin: isIncoming ? offset : Offset.zero,
+                                    end: isIncoming ? Offset.zero : offset,
+                                  );
+                                  final slideAnim = anim;
+                                  return FadeTransition(
+                                    opacity: anim,
+                                    child: SlideTransition(
+                                      position: slideTween.animate(slideAnim),
+                                      child: child,
+                                    ),
+                                  );
+                                },
+                                child: _AuthContent(
+                                  key: ValueKey(_isLogin ? 'login' : 'register'),
+                                  isLogin: _isLogin,
+                                  loginForm: _loginForm(context),
+                                  registerForm: _registerForm(context),
+                                ),
+                              ),
+                            ),
+                          ),
+
+                          const SizedBox(height: 18),
+
+                          const Divider(color: AppTheme.border),
+                          const SizedBox(height: 14),
+
+                          SizedBox(
+                            width: double.infinity,
+                            height: 54,
+                            child: ElevatedButton(
+                              onPressed: _isLoading ? null : () => _handleGoogle(context),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.white,
+                                foregroundColor: AppTheme.foreground,
+                                elevation: 0,
+                                side: const BorderSide(color: AppTheme.border),
+                              ),
+                              child: _isLoading
+                                  ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: AppTheme.primary,
+                                      ),
+                                    )
+                                      : Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Image.network(
+                                              'https://www.google.com/favicon.ico',
+                                              width: 24,
+                                              height: 24,
+                                              errorBuilder:
+                                                  (context, error, stackTrace) {
+                                                return const Icon(Icons.g_mobiledata,
+                                                    size: 24);
+                                              },
+                                            ),
+                                            const SizedBox(width: 12),
+                                            const Text(
+                                              'Continue with Google',
+                                              style: TextStyle(fontWeight: FontWeight.w700),
+                                            ),
+                                          ],
+                                        ),
+                            ),
+                          ),
+
+                          const SizedBox(height: 18),
+
+                          Text(
+                            'By continuing, you agree to our Terms of Service and Privacy Policy',
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  fontSize: 11,
+                                ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -330,6 +329,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
             label: 'Email',
             hint: 'name@example.com',
             keyboardType: TextInputType.emailAddress,
+            textInputAction: TextInputAction.next,
             validator: (v) {
               final s = (v ?? '').trim();
               if (s.isEmpty) return 'Email is required';
@@ -341,12 +341,13 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
           _textField(
             controller: _loginPassword,
             label: 'Password',
-            hint: '••••••••',
+            hint: 'At least 6 characters',
             obscureText: _loginObscure,
             suffix: IconButton(
               onPressed: () => setState(() => _loginObscure = !_loginObscure),
               icon: Icon(_loginObscure ? Icons.visibility : Icons.visibility_off),
             ),
+            textInputAction: TextInputAction.done,
             validator: (v) {
               final s = (v ?? '');
               if (s.isEmpty) return 'Password is required';
@@ -385,6 +386,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
             controller: _regName,
             label: 'Full Name',
             hint: 'e.g., Ali bin Abu',
+            textInputAction: TextInputAction.next,
             validator: (v) {
               final s = (v ?? '').trim();
               if (s.isEmpty) return 'Name is required';
@@ -398,6 +400,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
             label: 'Email',
             hint: 'name@example.com',
             keyboardType: TextInputType.emailAddress,
+            textInputAction: TextInputAction.next,
             validator: (v) {
               final s = (v ?? '').trim();
               if (s.isEmpty) return 'Email is required';
@@ -409,12 +412,13 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
           _textField(
             controller: _regPassword,
             label: 'Password',
-            hint: '••••••••',
+            hint: 'At least 6 characters',
             obscureText: _regObscure,
             suffix: IconButton(
               onPressed: () => setState(() => _regObscure = !_regObscure),
               icon: Icon(_regObscure ? Icons.visibility : Icons.visibility_off),
             ),
+            textInputAction: TextInputAction.next,
             validator: (v) {
               final s = (v ?? '');
               if (s.isEmpty) return 'Password is required';
@@ -426,12 +430,13 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
           _textField(
             controller: _regConfirm,
             label: 'Confirm Password',
-            hint: '••••••••',
+            hint: 'Re-enter password',
             obscureText: _regConfirmObscure,
             suffix: IconButton(
               onPressed: () => setState(() => _regConfirmObscure = !_regConfirmObscure),
               icon: Icon(_regConfirmObscure ? Icons.visibility : Icons.visibility_off),
             ),
+            textInputAction: TextInputAction.done,
             validator: (v) {
               final s = (v ?? '');
               if (s.isEmpty) return 'Confirm your password';
@@ -468,6 +473,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
     TextInputType? keyboardType,
     bool obscureText = false,
     Widget? suffix,
+    TextInputAction? textInputAction,
     String? Function(String?)? validator,
   }) {
     return Column(
@@ -487,6 +493,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
           keyboardType: keyboardType,
           obscureText: obscureText,
           validator: validator,
+          textInputAction: textInputAction,
           decoration: InputDecoration(
             hintText: hint,
             suffixIcon: suffix,
@@ -511,28 +518,144 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 12),
+        duration: const Duration(milliseconds: 220),
         decoration: BoxDecoration(
-          color: isActive ? Colors.white : Colors.transparent,
+          color: Colors.transparent,
           borderRadius: BorderRadius.circular(8),
-          boxShadow: isActive
-              ? [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ]
-              : null,
         ),
-        child: Text(
-          label,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            color: isActive ? AppTheme.foreground : AppTheme.mutedForeground,
-            fontWeight: FontWeight.w600,
+        child: Center(
+          child: AnimatedDefaultTextStyle(
+            duration: const Duration(milliseconds: 220),
+            style: TextStyle(
+              color: isActive ? AppTheme.foreground : AppTheme.mutedForeground,
+              fontWeight: FontWeight.w600,
+              height: 1.1,
+            ),
+            child: Text(
+              label,
+              textAlign: TextAlign.center,
+            ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSegmentedToggle() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const padding = 4.0;
+        final segmentWidth = (constraints.maxWidth - (padding * 2)) / 2;
+
+        return Container(
+          height: 48,
+          padding: const EdgeInsets.all(padding),
+          decoration: BoxDecoration(
+            color: AppTheme.secondary,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Stack(
+            children: [
+              AnimatedPositioned(
+                duration: const Duration(milliseconds: 260),
+                curve: Curves.easeOutCubic,
+                left: _isLogin ? 0 : segmentWidth,
+                top: 0,
+                bottom: 0,
+                child: Container(
+                  width: segmentWidth,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.06),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildToggleButton(
+                      'Login',
+                      _isLogin,
+                      () => _switchTab(true),
+                    ),
+                  ),
+                  Expanded(
+                    child: _buildToggleButton(
+                      'Register',
+                      !_isLogin,
+                      () => _switchTab(false),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _AuthContent extends StatelessWidget {
+  const _AuthContent({
+    super.key,
+    required this.isLogin,
+    required this.loginForm,
+    required this.registerForm,
+  });
+
+  final bool isLogin;
+  final Widget loginForm;
+  final Widget registerForm;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      key: ValueKey(isLogin ? 'loginContent' : 'registerContent'),
+      children: [
+        Text(
+          isLogin ? 'Welcome Back' : 'Create Account',
+          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                color: AppTheme.foreground,
+              ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          isLogin
+              ? 'Sign in to continue sharing and borrowing'
+              : 'Join JiranLink and start building community connections',
+          style: Theme.of(context).textTheme.bodySmall,
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 20),
+        isLogin ? loginForm : registerForm,
+      ],
+    );
+  }
+}
+
+class _GlowBlob extends StatelessWidget {
+  const _GlowBlob({required this.size, required this.color});
+
+  final double size;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: RadialGradient(
+          colors: [color, color.withOpacity(0.0)],
         ),
       ),
     );

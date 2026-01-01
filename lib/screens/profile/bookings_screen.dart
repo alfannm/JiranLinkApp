@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../../data/mock_data.dart';
+import 'package:provider/provider.dart';
 import '../../theme/app_theme.dart';
 import '../../models/booking.dart';
+import '../../providers/bookings_provider.dart';
 
 class BookingsScreen extends StatelessWidget {
   const BookingsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Mock: All mock bookings are considered "My Bookings" for now
-    final bookings = MockData.mockBookings;
+    final bookings = context.watch<BookingsProvider>().myBookings;
 
     return Scaffold(
       appBar: AppBar(
@@ -24,7 +24,14 @@ class BookingsScreen extends StatelessWidget {
               itemCount: bookings.length,
               separatorBuilder: (context, index) => const SizedBox(height: 16),
               itemBuilder: (context, index) {
-                return BookingCard(booking: bookings[index]);
+                return BookingCard(
+                  booking: bookings[index],
+                  onPay: () {
+                    context
+                        .read<BookingsProvider>()
+                        .markPaymentReceived(bookings[index].id);
+                  },
+                );
               },
             ),
     );
@@ -33,8 +40,13 @@ class BookingsScreen extends StatelessWidget {
 
 class BookingCard extends StatelessWidget {
   final Booking booking;
+  final VoidCallback onPay;
 
-  const BookingCard({super.key, required this.booking});
+  const BookingCard({
+    super.key,
+    required this.booking,
+    required this.onPay,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -116,8 +128,15 @@ class BookingCard extends StatelessWidget {
                   fontSize: 14,
                 ),
               ),
-              const Icon(Icons.arrow_forward_ios,
-                  size: 14, color: AppTheme.mutedForeground),
+              if (booking.status == BookingStatus.accepted &&
+                  booking.paymentStatus == PaymentStatus.pending)
+                ElevatedButton(
+                  onPressed: onPay,
+                  child: const Text('Pay Now'),
+                )
+              else
+                const Icon(Icons.arrow_forward_ios,
+                    size: 14, color: AppTheme.mutedForeground),
             ],
           ),
         ],
@@ -131,10 +150,14 @@ class BookingCard extends StatelessWidget {
         return Colors.blue;
       case BookingStatus.pending:
         return Colors.orange;
+      case BookingStatus.accepted:
+        return Colors.teal;
       case BookingStatus.completed:
         return Colors.green;
       case BookingStatus.cancelled:
         return Colors.red;
+      case BookingStatus.rejected:
+        return Colors.redAccent;
     }
   }
 }

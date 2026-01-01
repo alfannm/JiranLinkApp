@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
-import '../../data/mock_data.dart';
+import '../../providers/bookings_provider.dart';
+import '../../providers/items_provider.dart';
 import '../../theme/app_theme.dart';
 import 'favorites_screen.dart';
 import 'bookings_screen.dart';
 import 'incoming_requests_screen.dart';
 import 'my_listings_screen.dart';
+import 'edit_profile_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -14,7 +16,24 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthProvider>();
-    final user = MockData.currentUser;
+    final user = authProvider.currentUser;
+    final itemsProvider = context.watch<ItemsProvider>();
+    final bookingsProvider = context.watch<BookingsProvider>();
+
+    if (user == null) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    final myListings =
+        itemsProvider.allItems.where((i) => i.owner.id == user.id).length;
+    final myRentals = bookingsProvider.bookings
+        .where((b) => b.owner.id == user.id)
+        .length;
+    final borrowed = bookingsProvider.bookings
+        .where((b) => b.borrower.id == user.id)
+        .length;
 
     return Scaffold(
       appBar: AppBar(
@@ -25,7 +44,12 @@ class ProfileScreen extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.settings_outlined),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const EditProfileScreen()),
+              );
+            },
           ),
         ],
       ),
@@ -81,9 +105,9 @@ class ProfileScreen extends StatelessWidget {
                       const Icon(Icons.calendar_today,
                           color: Colors.white70, size: 16),
                       const SizedBox(width: 4),
-                      const Text(
-                        'Joined 1/15/2024', // Mock date
-                        style: TextStyle(
+                      Text(
+                        'Joined ${user.joinDate.month}/${user.joinDate.day}/${user.joinDate.year}',
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 14,
                         ),
@@ -111,11 +135,11 @@ class ProfileScreen extends StatelessWidget {
                   // Stats Row
                   Row(
                     children: [
-                      _buildStatCard('2', 'Items'),
+                      _buildStatCard('$myListings', 'Items'),
                       const SizedBox(width: 16),
-                      _buildStatCard('12', 'Rentals'),
+                      _buildStatCard('$myRentals', 'Rentals'),
                       const SizedBox(width: 16),
-                      _buildStatCard('8', 'Borrowed'),
+                      _buildStatCard('$borrowed', 'Borrowed'),
                     ],
                   ),
                 ],
@@ -197,7 +221,42 @@ class ProfileScreen extends StatelessWidget {
                       fontWeight: FontWeight.bold),
                 ),
               ),
-              onTap: () {},
+              onTap: () {
+                showModalBottomSheet(
+                  context: context,
+                  builder: (context) {
+                    return Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Verification Status',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          const Text(
+                            'Your account is verified. Contact support if you need to re-verify or update documents.',
+                            style: TextStyle(color: AppTheme.mutedForeground),
+                          ),
+                          const SizedBox(height: 16),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text('Close'),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              },
             ),
 
             const SizedBox(height: 24),

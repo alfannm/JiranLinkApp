@@ -1,12 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../../models/item.dart';
+import '../../models/user.dart' as app;
+import '../../providers/auth_provider.dart';
+import '../../providers/messages_provider.dart';
 import '../../theme/app_theme.dart';
-import '../../models/user.dart';
 
 class ChatScreen extends StatefulWidget {
-  final User otherUser;
+  final String? chatId;
+  final String otherUserId;
+  final String otherUserName;
+  final String? otherUserAvatar;
+  final Item? item;
   final String? initialMessage;
 
-  const ChatScreen({super.key, required this.otherUser, this.initialMessage});
+  const ChatScreen({
+    super.key,
+    this.chatId,
+    required this.otherUserId,
+    required this.otherUserName,
+    this.otherUserAvatar,
+    this.item,
+    this.initialMessage,
+  });
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -14,18 +31,12 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
-  final List<String> _messages = [
-    "Is this still available?",
-    "Yes, it is!",
-    "Great, can I rent it for tomorrow?",
-  ];
+  String? _chatId;
+  bool _sentInitial = false;
 
   @override
   void initState() {
     super.initState();
-    if (widget.initialMessage != null) {
-      _messages.add(widget.initialMessage!);
-    }
   }
 
   @override
@@ -34,13 +45,64 @@ class _ChatScreenState extends State<ChatScreen> {
     super.dispose();
   }
 
-  void _sendMessage() {
-    if (_messageController.text.trim().isNotEmpty) {
-      setState(() {
-        _messages.add(_messageController.text);
-        _messageController.clear();
-      });
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final messages = context.read<MessagesProvider>();
+    final me = context.read<AuthProvider>().currentUser;
+    if (me == null) return;
+
+    _chatId ??= widget.chatId ??
+        messages.buildChatId(
+          userA: me.id,
+          userB: widget.otherUserId,
+          itemId: widget.item?.id,
+        );
+
+    if (!_sentInitial && widget.initialMessage != null) {
+      _sentInitial = true;
+      messages.sendMessage(
+        otherUser: app.User(
+          id: widget.otherUserId,
+          name: widget.otherUserName,
+          email: '',
+          phone: '',
+          district: '',
+          avatar: widget.otherUserAvatar,
+          joinDate: DateTime.now(),
+          rating: 0,
+          reviewCount: 0,
+        ),
+        text: widget.initialMessage!,
+        item: widget.item,
+      );
     }
+
+    if (_chatId != null) {
+      messages.markChatRead(_chatId!);
+    }
+  }
+
+  Future<void> _sendMessage() async {
+    final text = _messageController.text.trim();
+    if (text.isEmpty) return;
+    final messages = context.read<MessagesProvider>();
+    await messages.sendMessage(
+      otherUser: app.User(
+        id: widget.otherUserId,
+        name: widget.otherUserName,
+        email: '',
+        phone: '',
+        district: '',
+        avatar: widget.otherUserAvatar,
+        joinDate: DateTime.now(),
+        rating: 0,
+        reviewCount: 0,
+      ),
+      text: text,
+      item: widget.item,
+    );
+    _messageController.clear();
   }
 
   @override
@@ -50,15 +112,17 @@ class _ChatScreenState extends State<ChatScreen> {
         title: Row(
           children: [
             CircleAvatar(
-              backgroundImage: widget.otherUser.avatar != null
-                  ? NetworkImage(widget.otherUser.avatar!)
+              backgroundImage: widget.otherUserAvatar != null
+                  ? NetworkImage(widget.otherUserAvatar!)
                   : null,
-              child: widget.otherUser.avatar == null
-                  ? Text(widget.otherUser.name[0])
+              child: widget.otherUserAvatar == null
+                  ? Text(widget.otherUserName.isNotEmpty
+                      ? widget.otherUserName[0]
+                      : '?')
                   : null,
             ),
             const SizedBox(width: 8),
-            Text(widget.otherUser.name),
+            Text(widget.otherUserName),
           ],
         ),
         backgroundColor: AppTheme.cardBackground,
@@ -66,32 +130,47 @@ class _ChatScreenState extends State<ChatScreen> {
       body: Column(
         children: [
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                final isMe = index % 2 != 0; // Alternating for mock
-                return Align(
-                  alignment:
-                      isMe ? Alignment.centerRight : Alignment.centerLeft,
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(vertical: 4),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: isMe ? AppTheme.primary : Colors.grey[200],
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Text(
-                      _messages[index],
-                      style: TextStyle(
-                        color: isMe ? Colors.white : Colors.black,
-                      ),
-                    ),
+            child: _chatId == null
+                ? const Center(child: CircularProgressIndicator())
+                : StreamBuilder(
+                    stream: context.read<MessagesProvider>().messageStream(_chatId!),
+                    builder: (context, snapshot) {
+                      if (!snapshot.hasData) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      final docs = snapshot.data!.docs;
+                      final me = context.read<AuthProvider>().currentUser;
+                      return ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: docs.length,
+                        itemBuilder: (context, index) {
+                          final data = docs[index].data();
+                          final senderId = data['senderId'];
+                          final text = data['text'] ?? '';
+                          final isMe = me != null && senderId == me.id;
+                          return Align(
+                            alignment:
+                                isMe ? Alignment.centerRight : Alignment.centerLeft,
+                            child: Container(
+                              margin: const EdgeInsets.symmetric(vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 10),
+                              decoration: BoxDecoration(
+                                color: isMe ? AppTheme.primary : Colors.grey[200],
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Text(
+                                text,
+                                style: TextStyle(
+                                  color: isMe ? Colors.white : Colors.black,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
                   ),
-                );
-              },
-            ),
           ),
           Container(
             padding: const EdgeInsets.all(8),

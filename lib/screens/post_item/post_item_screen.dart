@@ -1,11 +1,15 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../theme/app_theme.dart';
 import '../../providers/items_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../models/item.dart';
-import '../../data/mock_data.dart';
+import '../../services/location_service.dart';
 
 class PostItemScreen extends StatefulWidget {
   const PostItemScreen({super.key});
@@ -20,6 +24,15 @@ class _PostItemScreenState extends State<PostItemScreen> {
   final _descriptionController = TextEditingController();
   final _priceController = TextEditingController();
   final _depositController = TextEditingController();
+  final _addressController = TextEditingController();
+
+  final List<XFile> _images = [];
+  final ImagePicker _picker = ImagePicker();
+  final LocationService _locationService = LocationService();
+
+  double? _latitude;
+  double? _longitude;
+  bool _isSubmitting = false;
 
   ItemCategory _selectedCategory = ItemCategory.tools;
   ItemType _selectedType = ItemType.rent;
@@ -31,46 +44,100 @@ class _PostItemScreenState extends State<PostItemScreen> {
     _descriptionController.dispose();
     _priceController.dispose();
     _depositController.dispose();
+    _addressController.dispose();
     super.dispose();
   }
 
-  void _submitForm() {
-    if (_formKey.currentState!.validate()) {
-      final currentUser = context.read<AuthProvider>().currentUser ?? MockData.currentUser;
-      final newItem = Item(
-        id: const Uuid().v4(),
-        title: _titleController.text,
-        description: _descriptionController.text,
-        category: _selectedCategory,
-        type: _selectedType,
-        price: double.parse(_priceController.text),
-        deposit: _depositController.text.isNotEmpty
-            ? double.parse(_depositController.text)
-            : null,
-        priceUnit: _selectedPriceUnit,
-        images: [
-          'https://images.unsplash.com/photo-1581235720704-06d3acfcb36f?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3', // Placeholder
-        ],
-        owner: currentUser,
-        district: currentUser.district,
-        address: '123 Jalan Ampang', // Mock address
-        latitude: 3.1579,
-        longitude: 101.7116,
-        available: true,
-        condition: ItemCondition.good,
-        postedDate: DateTime.now(),
-        views: 0,
-        rating: null,
-        reviewCount: 0,
+  Future<void> _pickImages() async {
+    final files = await _picker.pickMultiImage(imageQuality: 75);
+    if (!mounted) return;
+    if (files.isEmpty) return;
+    setState(() {
+      _images
+        ..clear()
+        ..addAll(files);
+    });
+  }
+
+  Future<void> _detectLocation() async {
+    try {
+      final pos = await _locationService.getCurrentPosition();
+      if (!mounted) return;
+      setState(() {
+        _latitude = pos.latitude;
+        _longitude = pos.longitude;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Location captured.')),
       );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not detect location. Check permissions.')),
+      );
+    }
+  }
 
-      context.read<ItemsProvider>().addItem(newItem);
+  Future<void> _submitForm() async {
+    if (!_formKey.currentState!.validate()) return;
+    if (_images.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please add at least one photo.')),
+      );
+      return;
+    }
 
+    final currentUser = context.read<AuthProvider>().currentUser;
+    if (currentUser == null) return;
+
+    setState(() => _isSubmitting = true);
+
+    if (_latitude == null || _longitude == null) {
+      await _detectLocation();
+    }
+
+    final newItem = Item(
+      id: const Uuid().v4(),
+      title: _titleController.text.trim(),
+      description: _descriptionController.text.trim(),
+      category: _selectedCategory,
+      type: _selectedType,
+      price: double.parse(_priceController.text),
+      deposit: _depositController.text.isNotEmpty
+          ? double.parse(_depositController.text)
+          : null,
+      priceUnit: _selectedPriceUnit,
+      images: const [],
+      owner: currentUser,
+      district: currentUser.district,
+      address: _addressController.text.trim(),
+      latitude: _latitude ?? 0,
+      longitude: _longitude ?? 0,
+      available: true,
+      condition: ItemCondition.good,
+      postedDate: DateTime.now(),
+      views: 0,
+      rating: null,
+      reviewCount: 0,
+    );
+
+    try {
+      await context.read<ItemsProvider>().createItem(
+            item: newItem,
+            images: _images,
+          );
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Item posted successfully!')),
       );
-
       Navigator.pop(context);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to post item: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
     }
   }
 
@@ -89,24 +156,53 @@ class _PostItemScreenState extends State<PostItemScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Image Picker Placeholder
-              Container(
-                height: 200,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: AppTheme.background,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                      color: AppTheme.border, style: BorderStyle.solid),
-                ),
-                child: const Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.add_a_photo_outlined,
-                        size: 48, color: AppTheme.mutedForeground),
-                    SizedBox(height: 8),
-                    Text('Add Photos',
-                        style: TextStyle(color: AppTheme.mutedForeground)),
-                  ],
+              GestureDetector(
+                onTap: _pickImages,
+                child: Container(
+                  height: 200,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: AppTheme.background,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                        color: AppTheme.border, style: BorderStyle.solid),
+                  ),
+                  child: _images.isEmpty
+                      ? const Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.add_a_photo_outlined,
+                                size: 48, color: AppTheme.mutedForeground),
+                            SizedBox(height: 8),
+                            Text('Add Photos',
+                                style: TextStyle(color: AppTheme.mutedForeground)),
+                          ],
+                        )
+                      : ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          padding: const EdgeInsets.all(12),
+                          itemBuilder: (context, index) {
+                            final image = _images[index];
+                            return ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: kIsWeb
+                                  ? Image.network(
+                                      image.path,
+                                      width: 120,
+                                      height: 120,
+                                      fit: BoxFit.cover,
+                                    )
+                                  : Image.file(
+                                      File(image.path),
+                                      width: 120,
+                                      height: 120,
+                                      fit: BoxFit.cover,
+                                    ),
+                            );
+                          },
+                          separatorBuilder: (_, __) => const SizedBox(width: 12),
+                          itemCount: _images.length,
+                        ),
                 ),
               ),
               const SizedBox(height: 24),
@@ -255,6 +351,32 @@ class _PostItemScreenState extends State<PostItemScreen> {
                   border: OutlineInputBorder(),
                 ),
               ),
+              const SizedBox(height: 16),
+
+              // Address
+              TextFormField(
+                controller: _addressController,
+                decoration: const InputDecoration(
+                  labelText: 'Address',
+                  hintText: 'e.g. SS2, Petaling Jaya',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter an address';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 12),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton.icon(
+                  onPressed: _detectLocation,
+                  icon: const Icon(Icons.my_location),
+                  label: const Text('Use current location'),
+                ),
+              ),
               const SizedBox(height: 32),
 
               // Submit Button
@@ -262,7 +384,7 @@ class _PostItemScreenState extends State<PostItemScreen> {
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: _submitForm,
+                  onPressed: _isSubmitting ? null : _submitForm,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primary,
                     foregroundColor: Colors.white,
@@ -270,10 +392,20 @@ class _PostItemScreenState extends State<PostItemScreen> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child: const Text(
-                    'Post Item',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
+                  child: _isSubmitting
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text(
+                          'Post Item',
+                          style:
+                              TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
                 ),
               ),
               const SizedBox(height: 40),

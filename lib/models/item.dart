@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'user.dart';
 
 enum ItemCategory { tools, appliances, skills, services, others }
@@ -83,6 +84,71 @@ class Item {
       rating: json['rating']?.toDouble(),
       reviewCount: json['reviewCount'],
     );
+  }
+
+  factory Item.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
+    final data = doc.data() ?? {};
+    return Item(
+      id: doc.id,
+      title: data['title'] ?? '',
+      description: data['description'] ?? '',
+      category: ItemCategory.values.firstWhere(
+        (e) => e.toString().split('.').last == data['category'],
+        orElse: () => ItemCategory.others,
+      ),
+      type: ItemType.values.firstWhere(
+        (e) => e.toString().split('.').last == data['type'],
+        orElse: () => ItemType.rent,
+      ),
+      price: (data['price'] as num?)?.toDouble() ?? 0,
+      deposit: (data['deposit'] as num?)?.toDouble(),
+      priceUnit: PriceUnit.values.firstWhere(
+        (e) => e.toString().split('.').last == data['priceUnit'],
+        orElse: () => PriceUnit.day,
+      ),
+      images: List<String>.from(data['images'] ?? []),
+      owner: User.fromJson(Map<String, dynamic>.from(data['owner'] ?? {})),
+      district: data['district'] ?? '',
+      address: data['address'] ?? '',
+      latitude: (data['latitude'] as num?)?.toDouble() ?? 0,
+      longitude: (data['longitude'] as num?)?.toDouble() ?? 0,
+      available: data['available'] ?? true,
+      condition: data['condition'] != null
+          ? ItemCondition.values.firstWhere(
+              (e) => e.toString().split('.').last == data['condition'],
+              orElse: () => ItemCondition.good,
+            )
+          : null,
+      postedDate:
+          (data['postedDate'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      views: (data['views'] as num?)?.toInt() ?? 0,
+      rating: (data['rating'] as num?)?.toDouble(),
+      reviewCount: (data['reviewCount'] as num?)?.toInt(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'title': title,
+      'description': description,
+      'category': category.toString().split('.').last,
+      'type': type.toString().split('.').last,
+      'price': price,
+      'deposit': deposit,
+      'priceUnit': priceUnit.toString().split('.').last,
+      'images': images,
+      'owner': owner.toJson(),
+      'district': district,
+      'address': address,
+      'latitude': latitude,
+      'longitude': longitude,
+      'available': available,
+      'condition': condition?.toString().split('.').last,
+      'postedDate': postedDate,
+      'views': views,
+      'rating': rating,
+      'reviewCount': reviewCount,
+    };
   }
 
   String getPriceLabel() {

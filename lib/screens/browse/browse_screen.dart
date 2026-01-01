@@ -6,6 +6,7 @@ import '../../providers/favorites_provider.dart';
 import '../../widgets/item_card.dart';
 import '../item_details/item_detail_screen.dart';
 import 'map_screen.dart';
+import '../../models/item.dart';
 
 class BrowseScreen extends StatefulWidget {
   const BrowseScreen({super.key});
@@ -126,9 +127,9 @@ class _BrowseScreenState extends State<BrowseScreen> {
                           },
                         ),
                         const SizedBox(width: 8),
-                        _buildFilterDropdown('All Distances'),
+                        _buildDistanceDropdown(itemsProvider),
                         const SizedBox(width: 8),
-                        _buildFilterDropdown('All Categories'),
+                        _buildCategoryDropdown(itemsProvider),
                       ],
                     ),
                   ),
@@ -245,27 +246,59 @@ class _BrowseScreenState extends State<BrowseScreen> {
     );
   }
 
-  Widget _buildFilterDropdown(String label) {
+  Widget _buildDistanceDropdown(ItemsProvider itemsProvider) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
         color: AppTheme.background,
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Row(
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: AppTheme.foreground,
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<double?>(
+          value: itemsProvider.radiusFilter,
+          hint: const Text('All Distances'),
+          items: const [
+            DropdownMenuItem(value: null, child: Text('All Distances')),
+            DropdownMenuItem(value: 2, child: Text('Within 2 km')),
+            DropdownMenuItem(value: 5, child: Text('Within 5 km')),
+            DropdownMenuItem(value: 10, child: Text('Within 10 km')),
+            DropdownMenuItem(value: 20, child: Text('Within 20 km')),
+          ],
+          onChanged: (value) {
+            itemsProvider.setRadiusFilter(value);
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCategoryDropdown(ItemsProvider itemsProvider) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: AppTheme.background,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<ItemCategory?>(
+          value: itemsProvider.selectedCategory,
+          hint: const Text('All Categories'),
+          items: [
+            const DropdownMenuItem(
+              value: null,
+              child: Text('All Categories'),
             ),
-          ),
-          const SizedBox(width: 4),
-          const Icon(Icons.keyboard_arrow_down,
-              size: 16, color: AppTheme.mutedForeground),
-        ],
+            ...ItemCategory.values.map(
+              (c) => DropdownMenuItem(
+                value: c,
+                child: Text(c.toString().split('.').last.toUpperCase()),
+              ),
+            ),
+          ],
+          onChanged: (value) {
+            itemsProvider.setCategory(value);
+          },
+        ),
       ),
     );
   }

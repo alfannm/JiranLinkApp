@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
-import '../../data/mock_data.dart';
+import 'package:provider/provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/item_card.dart';
+import '../../providers/favorites_provider.dart';
+import '../../providers/items_provider.dart';
+import '../item_details/item_detail_screen.dart';
 
 class FavoritesScreen extends StatelessWidget {
   const FavoritesScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Mock: First 3 items are favorites
-    final favoriteItems = MockData.mockItems.take(3).toList();
+    final favorites = context.watch<FavoritesProvider>();
+    final items = context.watch<ItemsProvider>().allItems;
+    final favoriteItems = favorites.getFavoriteItems(items);
 
     return Scaffold(
       appBar: AppBar(
@@ -49,9 +53,17 @@ class FavoritesScreen extends StatelessWidget {
                 return ItemCard(
                   item: favoriteItems[index],
                   isFavorite: true,
-                  onToggleFavorite: () {},
+                  onToggleFavorite: () {
+                    favorites.toggleFavorite(favoriteItems[index].id);
+                  },
                   onTap: () {
-                    // Navigate to details if needed, or just keep it simple
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            ItemDetailScreen(item: favoriteItems[index]),
+                      ),
+                    );
                   },
                 );
               },

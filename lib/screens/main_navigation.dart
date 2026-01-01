@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/bookings_provider.dart';
-import '../data/mock_data.dart';
 import '../theme/app_theme.dart';
+import '../providers/messages_provider.dart';
 import 'home/home_screen.dart';
 import 'browse/browse_screen.dart';
 import 'post_item/post_item_screen.dart';
@@ -39,7 +39,7 @@ class MainNavigationState extends State<MainNavigation> {
 
   @override
   Widget build(BuildContext context) {
-    final unreadMessages = MockData.mockMessages.where((m) => m.unread).length;
+    final unreadMessages = context.watch<MessagesProvider>().unreadCount;
     final pendingRequests =
         context.watch<BookingsProvider>().pendingRequestsCount;
 
