@@ -44,6 +44,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final favoritesProvider = context.watch<FavoritesProvider>();
     final authProvider = context.watch<AuthProvider>();
     final currentUser = authProvider.currentUser;
+    final isUpdatingLocation = authProvider.isUpdatingLocation;
+    final locationLabel =
+        (isUpdatingLocation && authProvider.locationDistrict == 'Unknown')
+            ? 'Detecting...'
+            : authProvider.locationDistrict;
 
     if (currentUser == null) {
       return const Scaffold(
@@ -107,22 +112,43 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              authProvider.locationDistrict,
+                              locationLabel,
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 12,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
+                            if (isUpdatingLocation) ...[
+                              const SizedBox(width: 6),
+                              const SizedBox(
+                                width: 12,
+                                height: 12,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ],
                         ),
                       ),
                       const SizedBox(width: 8),
                       GestureDetector(
-                        onTap: () {
-                          context
+                        onTap: () async {
+                          await context
                               .read<AuthProvider>()
                               .updateLocationDistrict(force: true);
+                          if (!mounted) return;
+                          final error =
+                              context.read<AuthProvider>().locationError;
+                          if (error != null && error.isNotEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(error)),
+                            );
+                          }
                         },
                         child: const Text(
                           'Detect Location',

@@ -33,13 +33,16 @@ class AuthProvider extends ChangeNotifier {
   bool _isUpdatingLocation = false;
   DateTime? _lastLocationCheck;
   String? _detectedDistrict;
+  String? _locationError;
   app.User? _currentUser;
   StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _userSub;
 
   bool get hasCompletedOnboarding => _hasCompletedOnboarding;
   bool get isInitializing => _isInitializing;
   bool get isAuthenticated => _currentUser != null;
+  bool get isUpdatingLocation => _isUpdatingLocation;
   app.User? get currentUser => _currentUser;
+  String? get locationError => _locationError;
   String get locationDistrict =>
       (_detectedDistrict != null && _detectedDistrict!.isNotEmpty)
           ? _detectedDistrict!
@@ -88,6 +91,8 @@ class AuthProvider extends ChangeNotifier {
       if (elapsed.inMinutes < 5) return;
     }
     _isUpdatingLocation = true;
+    _locationError = null;
+    notifyListeners();
     final user = _currentUser;
     try {
       final district = await _locationService.getCurrentDistrict();
@@ -114,10 +119,13 @@ class AuthProvider extends ChangeNotifier {
           SetOptions(merge: true),
         );
       }
-    } catch (_) {
-      // Ignore location failures to avoid blocking app startup.
+    } catch (error) {
+      _locationError = error is Exception
+          ? error.toString().replaceFirst('Exception: ', '')
+          : 'Unable to detect location.';
     } finally {
       _isUpdatingLocation = false;
+      notifyListeners();
     }
   }
 
