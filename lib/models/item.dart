@@ -18,7 +18,9 @@ class Item {
   final List<String> images;
   final User owner;
   final String district;
+  final String state;
   final String address;
+  final String? landmark;
   final double latitude;
   final double longitude;
   final bool available;
@@ -40,7 +42,9 @@ class Item {
     required this.images,
     required this.owner,
     required this.district,
+    required this.state,
     required this.address,
+    this.landmark,
     required this.latitude,
     required this.longitude,
     required this.available,
@@ -70,7 +74,9 @@ class Item {
       images: List<String>.from(json['images']),
       owner: User.fromJson(json['owner']),
       district: json['district'],
+      state: json['state'] ?? '',
       address: json['address'],
+      landmark: json['landmark'],
       latitude: json['latitude'].toDouble(),
       longitude: json['longitude'].toDouble(),
       available: json['available'],
@@ -109,7 +115,9 @@ class Item {
       images: List<String>.from(data['images'] ?? []),
       owner: User.fromJson(Map<String, dynamic>.from(data['owner'] ?? {})),
       district: data['district'] ?? '',
+      state: data['state'] ?? '',
       address: data['address'] ?? '',
+      landmark: data['landmark'],
       latitude: (data['latitude'] as num?)?.toDouble() ?? 0,
       longitude: (data['longitude'] as num?)?.toDouble() ?? 0,
       available: data['available'] ?? true,
@@ -139,7 +147,9 @@ class Item {
       'images': images,
       'owner': owner.toJson(),
       'district': district,
+      'state': state,
       'address': address,
+      'landmark': landmark,
       'latitude': latitude,
       'longitude': longitude,
       'available': available,

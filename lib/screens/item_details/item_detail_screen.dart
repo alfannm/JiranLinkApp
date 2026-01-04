@@ -121,6 +121,34 @@ class ItemDetailScreen extends StatelessWidget {
                           ),
                         ),
                       ),
+                      if (item.condition != null)
+                        Container(
+                          margin: const EdgeInsets.only(left: 8),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            item.condition
+                                .toString()
+                                .split('.')
+                                .last
+                                .replaceAll('newItem', 'New')
+                                .replaceAll('likeNew', 'Like New')
+                                .replaceAllMapped(
+                                    RegExp(r'([a-z])([A-Z])'),
+                                    (Match m) => '${m[1]} ${m[2]}')
+                                .toUpperCase(),
+                            style: const TextStyle(
+                              color: Colors.black87,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      const Spacer(),
                       if (item.rating != null)
                         Row(
                           children: [
@@ -153,15 +181,32 @@ class ItemDetailScreen extends StatelessWidget {
 
                   // Location
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Icon(Icons.location_on_outlined,
                           size: 18, color: AppTheme.mutedForeground),
                       const SizedBox(width: 4),
-                      Text(
-                        item.district,
-                        style: const TextStyle(
-                          color: AppTheme.mutedForeground,
-                          fontSize: 14,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${item.district}, ${item.state}',
+                              style: const TextStyle(
+                                color: AppTheme.mutedForeground,
+                                fontSize: 14,
+                              ),
+                            ),
+                            if (item.landmark != null && item.landmark!.isNotEmpty)
+                              Text(
+                                'Near ${item.landmark}',
+                                style: const TextStyle(
+                                  color: AppTheme.mutedForeground,
+                                  fontSize: 13,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                          ],
                         ),
                       ),
                     ],

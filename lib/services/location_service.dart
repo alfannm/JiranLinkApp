@@ -47,4 +47,19 @@ class LocationService {
             '')
         .trim();
   }
+
+  /// Returns the full Placemark object for the current location.
+  Future<Placemark?> getCurrentPlacemark() async {
+    try {
+      final position = await getCurrentPosition();
+      final placemarks = await placemarkFromCoordinates(
+        position.latitude,
+        position.longitude,
+      );
+      if (placemarks.isEmpty) return null;
+      return placemarks.first;
+    } catch (e) {
+      return null;
+    }
+  }
 }
