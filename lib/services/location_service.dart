@@ -1,4 +1,5 @@
 import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
 
 class LocationService {
   /// Requests location permission (if needed) and returns the
@@ -28,5 +29,22 @@ class LocationService {
     return Geolocator.getCurrentPosition(
       desiredAccuracy: LocationAccuracy.high,
     );
+  }
+
+  /// Returns a best-effort district/locality name for the current location.
+  Future<String> getCurrentDistrict() async {
+    final position = await getCurrentPosition();
+    final placemarks = await placemarkFromCoordinates(
+      position.latitude,
+      position.longitude,
+    );
+    if (placemarks.isEmpty) return '';
+    final place = placemarks.first;
+    return (place.subAdministrativeArea ??
+            place.locality ??
+            place.subLocality ??
+            place.administrativeArea ??
+            '')
+        .trim();
   }
 }

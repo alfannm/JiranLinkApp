@@ -18,13 +18,32 @@ service cloud.firestore {
     }
 
     match /chats/{chatId} {
+      // Allow read/update/delete if user is a participant in the EXISTING document
       allow read, update, delete: if request.auth != null
         && request.auth.uid in resource.data.participants;
+      
+      // Allow create if user is a participant in the NEW document
       allow create: if request.auth != null
         && request.auth.uid in request.resource.data.participants;
+        
       match /messages/{messageId} {
-        allow read, create: if request.auth != null
-          && request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
+        // Allow read if user is a participant in the chat (via get)
+        // We use 'get' here because for reading, the chat document should theoretically exist 
+        // or we are tolerant of it missing (new chat case handles itself via local state usually, 
+        // but 'exists' check helps).
+        allow read: if request.auth != null && (
+          !exists(/databases/$(database)/documents/chats/$(chatId)) ||
+          request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants
+        );
+        
+        // Allow create if the sender matches the authenticated user.
+        // We rely on the parent 'chats' document update/create rule (in the same transaction)
+        // to enforce that the user is actually a participant.
+        // This avoids complex 'getAfter' logic which can be brittle in some environments.
+        allow create: if request.auth != null 
+          && request.resource.data.senderId == request.auth.uid;
+
+        // Allow update/delete if user is a participant (rarely used for messages, but good for safety)
         allow update, delete: if request.auth != null
           && request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
       }

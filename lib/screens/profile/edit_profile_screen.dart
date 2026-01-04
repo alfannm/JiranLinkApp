@@ -16,7 +16,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
-  final _districtController = TextEditingController();
   final _avatarController = TextEditingController();
 
   bool _isSaving = false;
@@ -28,7 +27,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if (user != null) {
       _nameController.text = user.name;
       _phoneController.text = user.phone;
-      _districtController.text = user.district;
       _avatarController.text = user.avatar ?? '';
     }
   }
@@ -37,7 +35,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   void dispose() {
     _nameController.dispose();
     _phoneController.dispose();
-    _districtController.dispose();
     _avatarController.dispose();
     super.dispose();
   }
@@ -52,7 +49,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       await FirebaseFirestore.instance.collection('users').doc(user.id).update({
         'name': _nameController.text.trim(),
         'phone': _phoneController.text.trim(),
-        'district': _districtController.text.trim(),
         'avatar': _avatarController.text.trim().isEmpty
             ? null
             : _avatarController.text.trim(),
@@ -101,17 +97,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   labelText: 'Phone',
                   border: OutlineInputBorder(),
                 ),
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _districtController,
-                decoration: const InputDecoration(
-                  labelText: 'District',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) => value == null || value.isEmpty
-                    ? 'District is required'
-                    : null,
               ),
               const SizedBox(height: 16),
               TextFormField(

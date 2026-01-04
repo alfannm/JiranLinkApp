@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../models/item.dart';
 import '../../models/user.dart' as app;
@@ -32,6 +33,7 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
   String? _chatId;
+  Stream<QuerySnapshot<Map<String, dynamic>>>? _messagesStream;
   bool _sentInitial = false;
 
   @override
@@ -52,12 +54,15 @@ class _ChatScreenState extends State<ChatScreen> {
     final me = Provider.of<AuthProvider>(context).currentUser;
     if (me == null) return;
 
-    _chatId ??= widget.chatId ??
-        messages.buildChatId(
-          userA: me.id,
-          userB: widget.otherUserId,
-          itemId: widget.item?.id,
-        );
+    if (_chatId == null) {
+      _chatId = widget.chatId ??
+          messages.buildChatId(
+            userA: me.id,
+            userB: widget.otherUserId,
+            itemId: widget.item?.id,
+          );
+      _messagesStream = messages.messageStream(_chatId!);
+    }
 
     if (!_sentInitial && widget.initialMessage != null) {
       _sentInitial = true;
@@ -88,23 +93,31 @@ class _ChatScreenState extends State<ChatScreen> {
     final text = _messageController.text.trim();
     if (text.isEmpty) return;
     final messages = context.read<MessagesProvider>();
-    await messages.sendMessage(
-      chatId: _chatId,
-      otherUser: app.User(
-        id: widget.otherUserId,
-        name: widget.otherUserName,
-        email: '',
-        phone: '',
-        district: '',
-        avatar: widget.otherUserAvatar,
-        joinDate: DateTime.now(),
-        rating: 0,
-        reviewCount: 0,
-      ),
-      text: text,
-      item: widget.item,
-    );
-    _messageController.clear();
+    try {
+      await messages.sendMessage(
+        chatId: _chatId,
+        otherUser: app.User(
+          id: widget.otherUserId,
+          name: widget.otherUserName,
+          email: '',
+          phone: '',
+          district: '',
+          avatar: widget.otherUserAvatar,
+          joinDate: DateTime.now(),
+          rating: 0,
+          reviewCount: 0,
+        ),
+        text: text,
+        item: widget.item,
+      );
+      _messageController.clear();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to send message: $e')),
+        );
+      }
+    }
   }
 
   @override
@@ -138,10 +151,10 @@ class _ChatScreenState extends State<ChatScreen> {
       body: Column(
         children: [
           Expanded(
-            child: _chatId == null
+            child: _messagesStream == null
                 ? const Center(child: CircularProgressIndicator())
                 : StreamBuilder(
-                    stream: context.read<MessagesProvider>().messageStream(_chatId!),
+                    stream: _messagesStream,
                     builder: (context, snapshot) {
                       if (snapshot.hasError) {
                         return const Center(
@@ -151,9 +164,10 @@ class _ChatScreenState extends State<ChatScreen> {
                       if (!snapshot.hasData) {
                         return const Center(child: CircularProgressIndicator());
                       }
-                      final docs = snapshot.data!.docs;
+                      final docs = snapshot.data!.docs.reversed.toList();
                       final me = context.read<AuthProvider>().currentUser;
                       return ListView.builder(
+                        reverse: true,
                         padding: const EdgeInsets.all(16),
                         itemCount: docs.length,
                         itemBuilder: (context, index) {

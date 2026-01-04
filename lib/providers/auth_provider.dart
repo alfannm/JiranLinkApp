@@ -7,6 +7,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/user.dart' as app;
+import '../services/location_service.dart';
 
 /// Real authentication provider (FirebaseAuth + GoogleSignIn).
 ///
@@ -25,9 +26,13 @@ class AuthProvider extends ChangeNotifier {
   final fb.FirebaseAuth _auth = fb.FirebaseAuth.instance;
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final LocationService _locationService = LocationService();
 
   bool _hasCompletedOnboarding = false;
   bool _isInitializing = true;
+  bool _isUpdatingLocation = false;
+  DateTime? _lastLocationCheck;
+  String? _detectedDistrict;
   app.User? _currentUser;
   StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _userSub;
 
@@ -35,6 +40,10 @@ class AuthProvider extends ChangeNotifier {
   bool get isInitializing => _isInitializing;
   bool get isAuthenticated => _currentUser != null;
   app.User? get currentUser => _currentUser;
+  String get locationDistrict =>
+      (_detectedDistrict != null && _detectedDistrict!.isNotEmpty)
+          ? _detectedDistrict!
+          : (_currentUser?.district ?? 'Unknown');
 
   AuthProvider() {
     _init();
@@ -70,6 +79,46 @@ class AuthProvider extends ChangeNotifier {
 
     _isInitializing = false;
     notifyListeners();
+  }
+
+  Future<void> updateLocationDistrict({bool force = false}) async {
+    if (_isUpdatingLocation) return;
+    if (!force && _lastLocationCheck != null) {
+      final elapsed = DateTime.now().difference(_lastLocationCheck!);
+      if (elapsed.inMinutes < 5) return;
+    }
+    _isUpdatingLocation = true;
+    final user = _currentUser;
+    try {
+      final district = await _locationService.getCurrentDistrict();
+      if (district.isEmpty) return;
+      _detectedDistrict = district;
+      _lastLocationCheck = DateTime.now();
+      if (user != null && district != user.district) {
+        _currentUser = app.User(
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          phone: user.phone,
+          district: district,
+          avatar: user.avatar,
+          joinDate: user.joinDate,
+          rating: user.rating,
+          reviewCount: user.reviewCount,
+        );
+      }
+      notifyListeners();
+      if (user != null && district != user.district) {
+        await _db.collection('users').doc(user.id).set(
+          {'district': district},
+          SetOptions(merge: true),
+        );
+      }
+    } catch (_) {
+      // Ignore location failures to avoid blocking app startup.
+    } finally {
+      _isUpdatingLocation = false;
+    }
   }
 
   Future<void> completeOnboarding() async {
@@ -141,6 +190,9 @@ class AuthProvider extends ChangeNotifier {
     await _auth.signOut();
     _userSub?.cancel();
     _userSub = null;
+    _isUpdatingLocation = false;
+    _lastLocationCheck = null;
+    _detectedDistrict = null;
     notifyListeners();
   }
 

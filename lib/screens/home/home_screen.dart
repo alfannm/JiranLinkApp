@@ -8,14 +8,42 @@ import '../../models/item.dart';
 import '../item_details/item_detail_screen.dart';
 import '../main_navigation.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<AuthProvider>().updateLocationDistrict(force: true);
+    });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      context.read<AuthProvider>().updateLocationDistrict(force: true);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final itemsProvider = context.watch<ItemsProvider>();
     final favoritesProvider = context.watch<FavoritesProvider>();
-    final currentUser = context.watch<AuthProvider>().currentUser;
+    final authProvider = context.watch<AuthProvider>();
+    final currentUser = authProvider.currentUser;
 
     if (currentUser == null) {
       return const Scaffold(
@@ -23,7 +51,8 @@ class HomeScreen extends StatelessWidget {
       );
     }
 
-    final nearbyItems = itemsProvider.getNearbyItems(currentUser.district, 4);
+    final nearbyItems =
+        itemsProvider.getNearbyItems(authProvider.locationDistrict, 4);
     final featuredItems = itemsProvider.getFeaturedItems(6);
 
     return Scaffold(
@@ -59,32 +88,54 @@ class HomeScreen extends StatelessWidget {
                   const SizedBox(height: 16),
 
                   // Location Pill
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.location_on,
-                          color: Colors.white,
-                          size: 14,
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(20),
                         ),
-                        const SizedBox(width: 4),
-                        Text(
-                          currentUser.district,
-                          style: const TextStyle(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.location_on,
+                              color: Colors.white,
+                              size: 14,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              authProvider.locationDistrict,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      GestureDetector(
+                        onTap: () {
+                          context
+                              .read<AuthProvider>()
+                              .updateLocationDistrict(force: true);
+                        },
+                        child: const Text(
+                          'Detect Location',
+                          style: TextStyle(
                             color: Colors.white,
                             fontSize: 12,
-                            fontWeight: FontWeight.w500,
+                            fontWeight: FontWeight.w600,
+                            decoration: TextDecoration.underline,
+                            decorationColor: Colors.white,
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 24),
 
