@@ -61,6 +61,8 @@ class _PostItemScreenState extends State<PostItemScreen> {
 
   String? _selectedState;
   String? _selectedDistrict;
+  String? _autoDetectedState;
+  String? _autoDetectedDistrict;
 
   String _capitalizeFirst(String value) {
     if (value.isEmpty) return value;
@@ -217,8 +219,8 @@ class _PostItemScreenState extends State<PostItemScreen> {
               ListTile(
                 leading: const Icon(Icons.photo_library_outlined),
                 title: const Text('Choose from gallery'),
-                iconColor: Colors.black,
-                textColor: Colors.black,
+                iconColor: Colors.white,
+                textColor: Colors.white,
                 onTap: () {
                   Navigator.pop(context);
                   _pickFromGallery();
@@ -227,8 +229,8 @@ class _PostItemScreenState extends State<PostItemScreen> {
               ListTile(
                 leading: const Icon(Icons.photo_camera_outlined),
                 title: const Text('Take a photo'),
-                iconColor: Colors.black,
-                textColor: Colors.black,
+                iconColor: Colors.white,
+                textColor: Colors.white,
                 onTap: () {
                   Navigator.pop(context);
                   _takePhoto();
@@ -256,6 +258,7 @@ class _PostItemScreenState extends State<PostItemScreen> {
     try {
       final pos = await _locationService.getCurrentPosition();
       final placemark = await _locationService.getCurrentPlacemark();
+      final detectedDistrict = await _locationService.getCurrentDistrict();
       
       if (!mounted) return;
       setState(() {
@@ -263,33 +266,51 @@ class _PostItemScreenState extends State<PostItemScreen> {
         _longitude = pos.longitude;
         
         if (placemark != null) {
-          // Attempt to match state
-          String? detectedState = placemark.administrativeArea;
-          if (detectedState != null) {
-             // Simple normalization to match keys if needed (e.g., "Selangor Darul Ehsan" -> "Selangor")
-             // For now, assuming exact match or close match.
-             // Helper to find key containing the detected state name
-             final matchedKey = malaysiaLocations.keys.firstWhere(
-               (k) => detectedState!.contains(k), 
-               orElse: () => ''
-             );
-             if (matchedKey.isNotEmpty) {
-               _selectedState = matchedKey;
-               _selectedDistrict = null; // Reset district when state changes
+          final detectedState = placemark.administrativeArea?.trim();
+          if (detectedState != null && detectedState.isNotEmpty) {
+            final matchedKey = malaysiaLocations.keys.firstWhere(
+              (k) => detectedState.contains(k),
+              orElse: () => '',
+            );
+            if (matchedKey.isNotEmpty) {
+              _selectedState = matchedKey;
+              _autoDetectedState = null;
+            } else {
+              _selectedState = detectedState;
+              _autoDetectedState = detectedState;
+            }
+          } else {
+            _selectedState = null;
+            _autoDetectedState = null;
+          }
 
-               // Attempt to match district
-               String? detectedDistrict = placemark.locality ?? placemark.subAdministrativeArea;
-               if (detectedDistrict != null && _selectedState != null) {
-                 final districtList = malaysiaLocations[_selectedState]!;
-                 final matchedDistrict = districtList.firstWhere(
-                   (d) => detectedDistrict!.contains(d) || d.contains(detectedDistrict),
-                   orElse: () => ''
-                 );
-                 if (matchedDistrict.isNotEmpty) {
-                   _selectedDistrict = matchedDistrict;
-                 }
-               }
-             }
+          String? candidateDistrict = detectedDistrict.trim();
+          if (candidateDistrict.isEmpty) {
+            final subAdmin = placemark.subAdministrativeArea?.trim();
+            final locality = placemark.locality?.trim();
+            final subLocality = placemark.subLocality?.trim();
+            if (subAdmin != null && subAdmin.isNotEmpty) {
+              candidateDistrict = subAdmin;
+            } else if (locality != null && locality.isNotEmpty) {
+              candidateDistrict = locality;
+            } else if (subLocality != null && subLocality.isNotEmpty) {
+              final normalizedSubLocality = subLocality.toLowerCase();
+              if (normalizedSubLocality.contains('tok jembal')) {
+                candidateDistrict = 'Kuala Nerus';
+              } else {
+                candidateDistrict = subLocality;
+              }
+            } else {
+              candidateDistrict = '';
+            }
+          }
+
+          if (candidateDistrict.isNotEmpty) {
+            _selectedDistrict = candidateDistrict;
+            _autoDetectedDistrict = candidateDistrict;
+          } else {
+            _selectedDistrict = null;
+            _autoDetectedDistrict = null;
           }
         }
       });
@@ -416,6 +437,20 @@ class _PostItemScreenState extends State<PostItemScreen> {
     final typeOptions = isServiceCategory
         ? [ItemType.rent]
         : ItemType.values.where((type) => type != ItemType.hire).toList();
+    final stateOptions = List<String>.from(malaysiaLocations.keys);
+    if (_autoDetectedState != null &&
+        _autoDetectedState!.isNotEmpty &&
+        !stateOptions.contains(_autoDetectedState)) {
+      stateOptions.insert(0, _autoDetectedState!);
+    }
+    final districtOptions = _selectedState != null
+        ? List<String>.from(malaysiaLocations[_selectedState] ?? <String>[])
+        : <String>[];
+    if (_autoDetectedDistrict != null &&
+        _autoDetectedDistrict!.isNotEmpty &&
+        !districtOptions.contains(_autoDetectedDistrict)) {
+      districtOptions.insert(0, _autoDetectedDistrict!);
+    }
     const double singleImageSize = 120.0;
     const double imageListPadding = 8.0;
     final imageBoxHeight =
@@ -760,7 +795,7 @@ class _PostItemScreenState extends State<PostItemScreen> {
                         border: OutlineInputBorder(),
                         contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 15),
                       ),
-                      items: malaysiaLocations.keys.map((state) {
+                      items: stateOptions.map((state) {
                         return DropdownMenuItem(
                           value: state,
                           child: Text(state, overflow: TextOverflow.ellipsis),
@@ -770,6 +805,8 @@ class _PostItemScreenState extends State<PostItemScreen> {
                         setState(() {
                           _selectedState = value;
                           _selectedDistrict = null; // Reset district
+                          _autoDetectedState = null;
+                          _autoDetectedDistrict = null;
                         });
                       },
                       validator: (value) => value == null ? 'Required' : null,
@@ -785,17 +822,18 @@ class _PostItemScreenState extends State<PostItemScreen> {
                         border: OutlineInputBorder(),
                         contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 15),
                       ),
-                      items: _selectedState != null
-                          ? malaysiaLocations[_selectedState]!.map((district) {
-                              return DropdownMenuItem(
-                                value: district,
-                                child: Text(district, overflow: TextOverflow.ellipsis),
-                              );
-                            }).toList()
-                          : [],
+                      items: districtOptions
+                          .map((district) {
+                            return DropdownMenuItem(
+                              value: district,
+                              child: Text(district, overflow: TextOverflow.ellipsis),
+                            );
+                          })
+                          .toList(),
                       onChanged: (value) {
                         setState(() {
                           _selectedDistrict = value;
+                          _autoDetectedDistrict = null;
                         });
                       },
                       validator: (value) => value == null ? 'Required' : null,
