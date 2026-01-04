@@ -39,19 +39,46 @@ class LocationService {
       position.longitude,
     );
     if (placemarks.isEmpty) return '';
-    final place = placemarks.first;
-    return (place.subAdministrativeArea ??
-            place.locality ??
-            place.subLocality ??
-            place.administrativeArea ??
-            '')
-        .trim();
+    return getDistrictFromPlacemark(placemarks.first);
+  }
+
+  /// Helper to extract district from Placemark with custom logic
+  String getDistrictFromPlacemark(Placemark place) {
+    // Special handling for Tok Jembal -> Kuala Nerus
+    final subLocality = place.subLocality?.trim() ?? '';
+    if (subLocality.toLowerCase().contains('tok jembal')) {
+      return 'Kuala Nerus';
+    }
+
+    final subAdmin = place.subAdministrativeArea?.trim() ?? '';
+    final locality = place.locality?.trim() ?? '';
+
+    // Fix for Kuala Nerus being inside Kuala Terengganu district in some datasets
+    if (subAdmin.toLowerCase() == 'kuala terengganu' && 
+        locality.toLowerCase() == 'kuala nerus') {
+      return 'Kuala Nerus';
+    }
+
+    // Default fallback priority
+    return (subAdmin.isNotEmpty ? subAdmin : 
+            locality.isNotEmpty ? locality : 
+            subLocality.isNotEmpty ? subLocality : 
+            place.administrativeArea ?? 
+            '').trim();
   }
 
   /// Returns the full Placemark object for the current location.
   Future<Placemark?> getCurrentPlacemark() async {
     try {
       final position = await getCurrentPosition();
+      return getPlacemarkFromPosition(position);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<Placemark?> getPlacemarkFromPosition(Position position) async {
+    try {
       final placemarks = await placemarkFromCoordinates(
         position.latitude,
         position.longitude,

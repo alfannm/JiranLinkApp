@@ -256,9 +256,11 @@ class _PostItemScreenState extends State<PostItemScreen> {
 
   Future<void> _detectLocation() async {
     try {
+      // 1. Get position once
       final pos = await _locationService.getCurrentPosition();
-      final placemark = await _locationService.getCurrentPlacemark();
-      final detectedDistrict = await _locationService.getCurrentDistrict();
+      
+      // 2. Get placemark from that position
+      final placemark = await _locationService.getPlacemarkFromPosition(pos);
       
       if (!mounted) return;
       setState(() {
@@ -266,6 +268,7 @@ class _PostItemScreenState extends State<PostItemScreen> {
         _longitude = pos.longitude;
         
         if (placemark != null) {
+          // 3. Detect State
           final detectedState = placemark.administrativeArea?.trim();
           if (detectedState != null && detectedState.isNotEmpty) {
             final matchedKey = malaysiaLocations.keys.firstWhere(
@@ -284,26 +287,8 @@ class _PostItemScreenState extends State<PostItemScreen> {
             _autoDetectedState = null;
           }
 
-          String? candidateDistrict = detectedDistrict.trim();
-          if (candidateDistrict.isEmpty) {
-            final subAdmin = placemark.subAdministrativeArea?.trim();
-            final locality = placemark.locality?.trim();
-            final subLocality = placemark.subLocality?.trim();
-            if (subAdmin != null && subAdmin.isNotEmpty) {
-              candidateDistrict = subAdmin;
-            } else if (locality != null && locality.isNotEmpty) {
-              candidateDistrict = locality;
-            } else if (subLocality != null && subLocality.isNotEmpty) {
-              final normalizedSubLocality = subLocality.toLowerCase();
-              if (normalizedSubLocality.contains('tok jembal')) {
-                candidateDistrict = 'Kuala Nerus';
-              } else {
-                candidateDistrict = subLocality;
-              }
-            } else {
-              candidateDistrict = '';
-            }
-          }
+          // 4. Detect District using the improved service logic
+          final candidateDistrict = _locationService.getDistrictFromPlacemark(placemark);
 
           if (candidateDistrict.isNotEmpty) {
             _selectedDistrict = candidateDistrict;
