@@ -66,6 +66,7 @@ class MessagesProvider extends ChangeNotifier {
   }
 
   Future<void> sendMessage({
+    String? chatId,
     required app.User otherUser,
     required String text,
     Item? item,
@@ -73,13 +74,14 @@ class MessagesProvider extends ChangeNotifier {
     final me = _currentUser;
     if (me == null) return;
 
-    final chatId = buildChatId(
-      userA: me.id,
-      userB: otherUser.id,
-      itemId: item?.id,
-    );
+    final resolvedChatId = chatId ??
+        buildChatId(
+          userA: me.id,
+          userB: otherUser.id,
+          itemId: item?.id,
+        );
 
-    final chatRef = _db.collection('chats').doc(chatId);
+    final chatRef = _db.collection('chats').doc(resolvedChatId);
     final msgRef = chatRef.collection('messages').doc();
     final now = DateTime.now();
 

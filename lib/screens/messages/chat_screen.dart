@@ -49,7 +49,7 @@ class _ChatScreenState extends State<ChatScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     final messages = context.read<MessagesProvider>();
-    final me = context.read<AuthProvider>().currentUser;
+    final me = Provider.of<AuthProvider>(context).currentUser;
     if (me == null) return;
 
     _chatId ??= widget.chatId ??
@@ -62,6 +62,7 @@ class _ChatScreenState extends State<ChatScreen> {
     if (!_sentInitial && widget.initialMessage != null) {
       _sentInitial = true;
       messages.sendMessage(
+        chatId: _chatId,
         otherUser: app.User(
           id: widget.otherUserId,
           name: widget.otherUserName,
@@ -88,6 +89,7 @@ class _ChatScreenState extends State<ChatScreen> {
     if (text.isEmpty) return;
     final messages = context.read<MessagesProvider>();
     await messages.sendMessage(
+      chatId: _chatId,
       otherUser: app.User(
         id: widget.otherUserId,
         name: widget.otherUserName,
@@ -122,7 +124,13 @@ class _ChatScreenState extends State<ChatScreen> {
                   : null,
             ),
             const SizedBox(width: 8),
-            Text(widget.otherUserName),
+            Expanded(
+              child: Text(
+                widget.otherUserName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
           ],
         ),
         backgroundColor: AppTheme.cardBackground,
@@ -135,6 +143,11 @@ class _ChatScreenState extends State<ChatScreen> {
                 : StreamBuilder(
                     stream: context.read<MessagesProvider>().messageStream(_chatId!),
                     builder: (context, snapshot) {
+                      if (snapshot.hasError) {
+                        return const Center(
+                          child: Text('Unable to load messages.'),
+                        );
+                      }
                       if (!snapshot.hasData) {
                         return const Center(child: CircularProgressIndicator());
                       }
