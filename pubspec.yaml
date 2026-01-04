@@ -45,7 +45,7 @@ dependencies:
   # UI Components
   flutter_svg: ^2.0.9
   image_picker: ^1.0.7
-  carousel_slider: ^4.2.1
+  carousel_slider: ^5.0.0
   shimmer: ^3.0.0
   
   # Utils
