@@ -81,24 +81,6 @@ class _BrowseScreenState extends State<BrowseScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Container(
-                        width: 48,
-                        height: 48,
-                        decoration: BoxDecoration(
-                          border: Border.all(color: AppTheme.border),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: IconButton(
-                          icon: const Icon(Icons.map_outlined),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (_) => const MapScreen()),
-                            );
-                          },
-                        ),
-                      ),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -288,12 +270,13 @@ class _BrowseScreenState extends State<BrowseScreen> {
               value: null,
               child: Text('All Categories'),
             ),
-            ...ItemCategory.values.map(
-              (c) => DropdownMenuItem(
+            ...ItemCategory.values.map((c) {
+              final text = c.toString().split('.').last;
+              return DropdownMenuItem(
                 value: c,
-                child: Text(c.toString().split('.').last.toUpperCase()),
-              ),
-            ),
+                child: Text(text[0].toUpperCase() + text.substring(1)),
+              );
+            }),
           ],
           onChanged: (value) {
             itemsProvider.setCategory(value);

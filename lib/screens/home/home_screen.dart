@@ -197,7 +197,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             ),
           ),
 
-          // Categories
+          // Quick Links
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
@@ -205,7 +205,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Categories',
+                    'Quick Links',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -424,11 +424,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
-  Widget _buildCategoryItem(BuildContext context, IconData icon, String label,
-      ItemCategory? category) {
-    final isSelected =
-        context.watch<ItemsProvider>().selectedCategory == category;
-
+  Widget _buildCategoryItem(
+    BuildContext context,
+    IconData icon,
+    String label,
+    ItemCategory? category,
+  ) {
     return GestureDetector(
       onTap: () {
         context.read<ItemsProvider>().setCategory(category);
@@ -439,10 +440,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           Container(
             width: 56,
             height: 56,
-            decoration: BoxDecoration(
-              color: isSelected
-                  ? const Color(0xFFD1FAE5)
-                  : const Color(0xFFF3F4F6),
+            decoration: const BoxDecoration(
+              color: Color(0xFFF3F4F6),
               shape: BoxShape.circle,
             ),
             child: Icon(
