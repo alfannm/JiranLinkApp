@@ -6,6 +6,14 @@ enum ItemType { rent, borrow, hire }
 enum ItemCondition { newItem, likeNew, good, fair }
 enum PriceUnit { hour, day, week, month, job }
 
+DateTime? _parseOptionalDate(dynamic raw) {
+  if (raw == null) return null;
+  if (raw is Timestamp) return raw.toDate();
+  if (raw is DateTime) return raw;
+  if (raw is String) return DateTime.tryParse(raw);
+  return null;
+}
+
 class Item {
   final String id;
   final String title;
@@ -24,6 +32,7 @@ class Item {
   final double latitude;
   final double longitude;
   final bool available;
+  final DateTime? expectedAvailableDate;
   final ItemCondition? condition;
   final DateTime postedDate;
   final int views;
@@ -48,6 +57,7 @@ class Item {
     required this.latitude,
     required this.longitude,
     required this.available,
+    this.expectedAvailableDate,
     this.condition,
     required this.postedDate,
     required this.views,
@@ -95,6 +105,7 @@ class Item {
       latitude: (json['latitude'] as num?)?.toDouble() ?? 0,
       longitude: (json['longitude'] as num?)?.toDouble() ?? 0,
       available: json['available'] ?? true,
+      expectedAvailableDate: _parseOptionalDate(json['expectedAvailableDate']),
       condition: json['condition'] != null
           ? ItemCondition.values.firstWhere(
               (e) => e.toString().split('.').last == json['condition'],
@@ -137,6 +148,7 @@ class Item {
       latitude: (data['latitude'] as num?)?.toDouble() ?? 0,
       longitude: (data['longitude'] as num?)?.toDouble() ?? 0,
       available: data['available'] ?? true,
+      expectedAvailableDate: _parseOptionalDate(data['expectedAvailableDate']),
       condition: data['condition'] != null
           ? ItemCondition.values.firstWhere(
               (e) => e.toString().split('.').last == data['condition'],
@@ -169,6 +181,7 @@ class Item {
       'latitude': latitude,
       'longitude': longitude,
       'available': available,
+      'expectedAvailableDate': expectedAvailableDate,
       'condition': condition?.toString().split('.').last,
       'postedDate': postedDate,
       'views': views,

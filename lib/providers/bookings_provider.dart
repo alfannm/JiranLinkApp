@@ -141,10 +141,30 @@ class BookingsProvider extends ChangeNotifier {
     });
   }
 
-  Future<void> markPaymentReceived(String bookingId) async {
-    await _db.collection('bookings').doc(bookingId).update({
+  Future<void> markPaymentReceived(Booking booking) async {
+    await _db.collection('bookings').doc(booking.id).update({
       'paymentStatus': PaymentStatus.paid.toString().split('.').last,
+      'status': BookingStatus.pendingPickup.toString().split('.').last,
+    });
+    await _db.collection('items').doc(booking.itemId).update({
+      'available': false,
+      'expectedAvailableDate': booking.endDate,
+    });
+  }
+
+  Future<void> markItemReceived(Booking booking) async {
+    await _db.collection('bookings').doc(booking.id).update({
       'status': BookingStatus.active.toString().split('.').last,
+    });
+  }
+
+  Future<void> markItemReturned(Booking booking) async {
+    await _db.collection('bookings').doc(booking.id).update({
+      'status': BookingStatus.completed.toString().split('.').last,
+    });
+    await _db.collection('items').doc(booking.itemId).update({
+      'available': true,
+      'expectedAvailableDate': null,
     });
   }
 

@@ -104,11 +104,7 @@ class BookingCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
-                            booking.status
-                                .toString()
-                                .split('.')
-                                .last
-                                .toUpperCase(),
+                            booking.statusLabel,
                             style: TextStyle(
                               color: statusColor,
                               fontSize: 10,
@@ -168,6 +164,8 @@ class BookingCard extends StatelessWidget {
         return Colors.orange;
       case BookingStatus.accepted:
         return Colors.teal;
+      case BookingStatus.pendingPickup:
+        return Colors.amber;
       case BookingStatus.completed:
         return Colors.green;
       case BookingStatus.cancelled:

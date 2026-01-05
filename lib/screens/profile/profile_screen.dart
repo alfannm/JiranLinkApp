@@ -31,6 +31,7 @@ class ProfileScreen extends StatelessWidget {
         itemsProvider.allItems.where((i) => i.owner.id == user.id).length;
     bool isSuccessful(BookingStatus status) {
       return status == BookingStatus.accepted ||
+          status == BookingStatus.pendingPickup ||
           status == BookingStatus.active ||
           status == BookingStatus.completed;
     }

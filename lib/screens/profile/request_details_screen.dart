@@ -8,66 +8,29 @@ import '../../providers/auth_provider.dart';
 import '../../providers/bookings_provider.dart';
 import '../../theme/app_theme.dart';
 
-class BookingDetailsScreen extends StatelessWidget {
+class RequestDetailsScreen extends StatelessWidget {
   final Booking booking;
 
-  const BookingDetailsScreen({super.key, required this.booking});
+  const RequestDetailsScreen({super.key, required this.booking});
 
   @override
   Widget build(BuildContext context) {
     final dateFormat = DateFormat('MMM d, y');
+    final statusColor = _getStatusColor(booking.status);
     final deposit = booking.depositAmount ?? 0;
     final totalWithDeposit = booking.totalPrice + deposit;
-    final statusColor = _getStatusColor(booking.status);
-    final shouldPay = booking.status == BookingStatus.accepted &&
-        booking.paymentStatus == PaymentStatus.pending;
     final currentUser = context.watch<AuthProvider>().currentUser;
     final isOwner = currentUser != null &&
         (booking.ownerId == currentUser.id ||
             (currentUser.email.isNotEmpty &&
                 booking.owner.email.isNotEmpty &&
                 booking.owner.email == currentUser.email));
-    final isBorrower = currentUser != null &&
-        (booking.borrowerId == currentUser.id ||
-            (currentUser.email.isNotEmpty &&
-                booking.borrower.email.isNotEmpty &&
-                booking.borrower.email == currentUser.email));
-    final canConfirmReceived =
-        booking.status == BookingStatus.pendingPickup && isBorrower;
     final canConfirmReturned =
         booking.status == BookingStatus.active && isOwner;
 
-    Widget buildActionSheet({
-      required String label,
-      required Future<void> Function() onPressed,
-    }) {
-      return Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, -5),
-            ),
-          ],
-        ),
-        child: SafeArea(
-          child: SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () async => onPressed(),
-              child: Text(label),
-            ),
-          ),
-        ),
-      );
-    }
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Booking Details'),
+        title: const Text('Request Details'),
         backgroundColor: AppTheme.cardBackground,
       ),
       body: SingleChildScrollView(
@@ -77,21 +40,17 @@ class BookingDetailsScreen extends StatelessWidget {
           children: [
             _buildItemCard(),
             const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: statusColor.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Text(
-                booking.statusLabel,
-                style: TextStyle(
-                  color: statusColor,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 12,
-                ),
+            _buildStatusChip(statusColor),
+            const SizedBox(height: 16),
+            const Text(
+              'Borrower',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
               ),
             ),
+            const SizedBox(height: 8),
+            _buildBorrowerCard(),
             const SizedBox(height: 16),
             _buildInfoRow(
               'Dates',
@@ -100,7 +59,7 @@ class BookingDetailsScreen extends StatelessWidget {
             if ((booking.requestMessage ?? '').isNotEmpty)
               _buildInfoRow('Notes', booking.requestMessage!),
             if ((booking.ownerResponseMessage ?? '').isNotEmpty)
-              _buildInfoRow('Owner Message', booking.ownerResponseMessage!),
+              _buildInfoRow('Your Response', booking.ownerResponseMessage!),
             const SizedBox(height: 24),
             const Text(
               'Price Summary',
@@ -134,17 +93,6 @@ class BookingDetailsScreen extends StatelessWidget {
                     'RM ${totalWithDeposit.toStringAsFixed(2)}',
                     highlight: true,
                   ),
-                  if (booking.status == BookingStatus.pending)
-                    const Padding(
-                      padding: EdgeInsets.only(top: 8),
-                      child: Text(
-                        '* Payment will be processed after the owner accepts your request',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: AppTheme.mutedForeground,
-                        ),
-                      ),
-                    ),
                 ],
               ),
             ),
@@ -152,61 +100,50 @@ class BookingDetailsScreen extends StatelessWidget {
           ],
         ),
       ),
-      bottomSheet: shouldPay
-          ? buildActionSheet(
-              label: 'Proceed to Payment',
-              onPressed: () async {
-                try {
-                  await context
-                      .read<BookingsProvider>()
-                      .markPaymentReceived(booking);
-                  if (!context.mounted) return;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Payment completed.')),
-                  );
-                  Navigator.of(context).pop(true);
-                } catch (e) {
-                  if (!context.mounted) return;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Payment failed: $e')),
-                  );
-                }
-              },
-            )
-          : canConfirmReceived
-              ? buildActionSheet(
-                  label: booking.receiveActionLabel,
-                  onPressed: () async {
-                    await context
-                        .read<BookingsProvider>()
-                        .markItemReceived(booking);
-                    if (!context.mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('${booking.receiveActionLabel} confirmed.'),
-                      ),
-                    );
-                    Navigator.pop(context);
-                  },
-                )
-              : canConfirmReturned
-                  ? buildActionSheet(
-                      label: booking.returnActionLabel,
-                      onPressed: () async {
-                        await context
-                            .read<BookingsProvider>()
-                            .markItemReturned(booking);
-                        if (!context.mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content:
-                                Text('${booking.returnActionLabel} recorded.'),
-                          ),
-                        );
-                        Navigator.pop(context);
-                      },
-                    )
-          : null,
+      bottomSheet: canConfirmReturned ? _buildReturnAction(context) : null,
+    );
+  }
+
+  Widget _buildReturnAction(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, -5),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        child: SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: () async {
+              try {
+                await context
+                    .read<BookingsProvider>()
+                    .markItemReturned(booking);
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('${booking.returnActionLabel} recorded.'),
+                  ),
+                );
+                Navigator.of(context).pop(true);
+              } catch (e) {
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Failed to update: $e')),
+                );
+              }
+            },
+            child: Text(booking.returnActionLabel),
+          ),
+        ),
+      ),
     );
   }
 
@@ -255,6 +192,71 @@ class BookingDetailsScreen extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildBorrowerCard() {
+    final borrower = booking.borrower;
+    final fallbackLetter =
+        borrower.name.isNotEmpty ? borrower.name[0].toUpperCase() : '?';
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.border),
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            backgroundImage:
+                borrower.avatar != null ? NetworkImage(borrower.avatar!) : null,
+            child: borrower.avatar == null ? Text(fallbackLetter) : null,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  borrower.name,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 15,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  borrower.district,
+                  style: const TextStyle(
+                    color: AppTheme.mutedForeground,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatusChip(Color statusColor) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: statusColor.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Text(
+        booking.statusLabel,
+        style: TextStyle(
+          color: statusColor,
+          fontWeight: FontWeight.w600,
+          fontSize: 12,
+        ),
       ),
     );
   }

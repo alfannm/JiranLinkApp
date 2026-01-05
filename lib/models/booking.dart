@@ -2,12 +2,21 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'item.dart';
 import 'user.dart';
 
-enum BookingStatus { pending, accepted, active, completed, cancelled, rejected }
+enum BookingStatus {
+  pending,
+  accepted,
+  pendingPickup,
+  active,
+  completed,
+  cancelled,
+  rejected
+}
 enum PaymentStatus { pending, paid, failed, refunded }
 
 class Booking {
   final String id;
   final Item item;
+  final String itemId;
   final User borrower;
   final String borrowerId;
   final User owner;
@@ -27,6 +36,7 @@ class Booking {
   Booking({
     required this.id,
     required this.item,
+    String? itemId,
     required this.borrower,
     required this.owner,
     required this.startDate,
@@ -42,13 +52,16 @@ class Booking {
     this.ownerResponseMessage,
     String? borrowerId,
     String? ownerId,
-  })  : borrowerId = borrowerId ?? borrower.id,
+  })  : itemId = itemId ?? item.id,
+        borrowerId = borrowerId ?? borrower.id,
         ownerId = ownerId ?? owner.id;
 
   factory Booking.fromJson(Map<String, dynamic> json) {
+    final item = Item.fromJson(json['item']);
     return Booking(
       id: json['id'],
-      item: Item.fromJson(json['item']),
+      item: item,
+      itemId: json['itemId'] ?? item.id,
       borrower: User.fromJson(json['borrower']),
       borrowerId: json['borrowerId'],
       owner: User.fromJson(json['owner']),
@@ -57,9 +70,11 @@ class Booking {
       endDate: DateTime.parse(json['endDate']),
       status: BookingStatus.values.firstWhere(
         (e) => e.toString().split('.').last == json['status'],
+        orElse: () => BookingStatus.pending,
       ),
       paymentStatus: PaymentStatus.values.firstWhere(
         (e) => e.toString().split('.').last == json['paymentStatus'],
+        orElse: () => PaymentStatus.pending,
       ),
       depositAmount: json['depositAmount']?.toDouble(),
       rentAmount: json['rentAmount'].toDouble(),
@@ -73,9 +88,11 @@ class Booking {
 
   factory Booking.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data() ?? {};
+    final item = Item.fromJson(Map<String, dynamic>.from(data['item'] ?? {}));
     return Booking(
       id: doc.id,
-      item: Item.fromJson(Map<String, dynamic>.from(data['item'] ?? {})),
+      item: item,
+      itemId: data['itemId'] ?? item.id,
       borrower: User.fromJson(Map<String, dynamic>.from(data['borrower'] ?? {})),
       borrowerId: data['borrowerId'],
       owner: User.fromJson(Map<String, dynamic>.from(data['owner'] ?? {})),
@@ -104,7 +121,7 @@ class Booking {
 
   Map<String, dynamic> toJson() {
     return {
-      'itemId': item.id,
+      'itemId': itemId,
       'item': item.toJson(),
       'borrowerId': borrowerId,
       'borrower': borrower.toJson(),
@@ -123,6 +140,38 @@ class Booking {
       'ownerResponseMessage': ownerResponseMessage,
     };
   }
+}
+
+extension BookingDisplay on Booking {
+  bool get isServiceBooking =>
+      item.type == ItemType.hire ||
+      item.category == ItemCategory.services ||
+      item.category == ItemCategory.skills;
+
+  String get statusLabel {
+    switch (status) {
+      case BookingStatus.pending:
+        return 'Pending';
+      case BookingStatus.accepted:
+        return 'Accepted';
+      case BookingStatus.pendingPickup:
+        return isServiceBooking ? 'Pending Session' : 'Pending Pickup';
+      case BookingStatus.active:
+        return isServiceBooking ? 'Service Received' : 'Item Received';
+      case BookingStatus.completed:
+        return isServiceBooking ? 'Service Completed' : 'Item Returned';
+      case BookingStatus.cancelled:
+        return 'Cancelled';
+      case BookingStatus.rejected:
+        return 'Rejected';
+    }
+  }
+
+  String get receiveActionLabel =>
+      isServiceBooking ? 'Service Received' : 'Item Received';
+
+  String get returnActionLabel =>
+      isServiceBooking ? 'Service Completed' : 'Item Returned';
 }
 
 class Message {

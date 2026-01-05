@@ -466,6 +466,7 @@ class _PostItemScreenState extends State<PostItemScreen> {
         latitude: _latitude ?? existingItem?.latitude ?? 0,
         longitude: _longitude ?? existingItem?.longitude ?? 0,
         available: existingItem?.available ?? true,
+        expectedAvailableDate: existingItem?.expectedAvailableDate,
         condition: isServiceCategory ? null : _selectedCondition,
         postedDate: existingItem?.postedDate ?? DateTime.now(),
         views: existingItem?.views ?? 0,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
 import '../../models/item.dart';
@@ -86,6 +87,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
     final owner = item.owner;
     final favorites = context.watch<FavoritesProvider>();
     final currentUser = context.watch<AuthProvider>().currentUser;
+    final dateFormat = DateFormat('MMM d, y');
     final isOwner = currentUser != null &&
         (owner.id == currentUser.id ||
             (currentUser.email.isNotEmpty &&
@@ -94,6 +96,9 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
     final isBorrow = item.type == ItemType.borrow;
     final landmarkText =
         item.landmark != null && item.landmark!.isNotEmpty ? item.landmark! : 'N/A';
+    final expectedAvailableDate = item.expectedAvailableDate;
+    final showExpectedAvailable =
+        !item.available && expectedAvailableDate != null;
 
     return Scaffold(
       body: SafeArea(
@@ -289,6 +294,17 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                                 _buildStatusChip(item.available),
                               ],
                             ),
+                            if (showExpectedAvailable) ...[
+                              const SizedBox(height: 6),
+                              Text(
+                                'Expected available date: ${dateFormat.format(expectedAvailableDate!)}',
+                                textAlign: TextAlign.right,
+                                style: const TextStyle(
+                                  color: AppTheme.mutedForeground,
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ],
                           ],
                         ),
                       ],
