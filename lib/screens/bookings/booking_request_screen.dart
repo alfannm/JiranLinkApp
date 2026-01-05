@@ -35,6 +35,14 @@ class _BookingRequestScreenState extends State<BookingRequestScreen> {
       widget.item.type == ItemType.hire ||
       widget.item.category == ItemCategory.services ||
       widget.item.category == ItemCategory.skills;
+  bool get _isOwnerBooking {
+    final owner = widget.item.owner;
+    final borrower = widget.borrower;
+    return owner.id == borrower.id ||
+        (borrower.email.isNotEmpty &&
+            owner.email.isNotEmpty &&
+            owner.email == borrower.email);
+  }
 
   @override
   void initState() {
@@ -127,6 +135,12 @@ class _BookingRequestScreenState extends State<BookingRequestScreen> {
   }
 
   Future<void> _submitRequest() async {
+    if (_isOwnerBooking) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('You cannot book your own listing.')),
+      );
+      return;
+    }
     if (_startDate == null || _endDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select start and end dates.')),
@@ -145,23 +159,63 @@ class _BookingRequestScreenState extends State<BookingRequestScreen> {
     });
 
     final message = _notesController.text.trim();
-    await context.read<BookingsProvider>().createBookingRequest(
-          item: widget.item,
-          borrower: widget.borrower,
-          startDate: _startDate!,
-          endDate: _endDate!,
-          requestMessage: message.isEmpty ? null : message,
-        );
-
-    if (!mounted) return;
-    setState(() {
-      _submitting = false;
-    });
-    Navigator.pop(context, true);
+    try {
+      await context.read<BookingsProvider>().createBookingRequest(
+            item: widget.item,
+            borrower: widget.borrower,
+            startDate: _startDate!,
+            endDate: _endDate!,
+            requestMessage: message.isEmpty ? null : message,
+          );
+      if (!mounted) return;
+      Navigator.pop(context, true);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to send request: $e')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _submitting = false;
+        });
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_isOwnerBooking) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Booking Details'),
+          backgroundColor: AppTheme.cardBackground,
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.info_outline,
+                    size: 48, color: AppTheme.mutedForeground),
+                const SizedBox(height: 12),
+                const Text(
+                  'You cannot book your own listing.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 16),
+                ),
+                const SizedBox(height: 16),
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Go back'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
     final owner = widget.item.owner;
     final deposit = widget.item.deposit ?? 0;
     final totalAmount = _totalAmount();

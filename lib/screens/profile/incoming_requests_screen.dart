@@ -59,54 +59,10 @@ class RequestCard extends StatelessWidget {
 
   Future<void> _handleDecision(BuildContext context,
       {required bool accept}) async {
-    final controller = TextEditingController();
-    bool canSubmit = accept;
     final result = await showDialog<String>(
       context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: Text(accept ? 'Accept Request' : 'Decline Request'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: controller,
-                    maxLines: 3,
-                    decoration: InputDecoration(
-                      labelText: 'Message to borrower',
-                      hintText: accept
-                          ? 'Optional message'
-                          : 'Please provide a reason',
-                    ),
-                    onChanged: (value) {
-                      if (accept) return;
-                      setState(() {
-                        canSubmit = value.trim().isNotEmpty;
-                      });
-                    },
-                  ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancel'),
-                ),
-                ElevatedButton(
-                  onPressed: canSubmit
-                      ? () => Navigator.pop(context, controller.text.trim())
-                      : null,
-                  child: const Text('Send'),
-                ),
-              ],
-            );
-          },
-        );
-      },
+      builder: (context) => _RequestDecisionDialog(accept: accept),
     );
-    controller.dispose();
     if (result == null) return;
 
     final message = result.isEmpty ? null : result;
@@ -317,5 +273,65 @@ class RequestCard extends StatelessWidget {
       case BookingStatus.rejected:
         return Colors.redAccent;
     }
+  }
+}
+
+class _RequestDecisionDialog extends StatefulWidget {
+  final bool accept;
+
+  const _RequestDecisionDialog({required this.accept});
+
+  @override
+  State<_RequestDecisionDialog> createState() => _RequestDecisionDialogState();
+}
+
+class _RequestDecisionDialogState extends State<_RequestDecisionDialog> {
+  final _formKey = GlobalKey<FormState>();
+  final _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(widget.accept ? 'Accept Request' : 'Decline Request'),
+      content: Form(
+        key: _formKey,
+        child: TextFormField(
+          controller: _controller,
+          maxLines: 3,
+          decoration: InputDecoration(
+            labelText: 'Message to borrower',
+            hintText:
+                widget.accept ? 'Optional message' : 'Please provide a reason',
+          ),
+          validator: widget.accept
+              ? null
+              : (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Please provide a reason';
+                  }
+                  return null;
+                },
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            if (!_formKey.currentState!.validate()) return;
+            Navigator.pop(context, _controller.text.trim());
+          },
+          child: const Text('Send'),
+        ),
+      ],
+    );
   }
 }

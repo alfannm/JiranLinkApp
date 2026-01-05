@@ -8,8 +8,10 @@ import '../../theme/app_theme.dart';
 
 import '../messages/chat_screen.dart';
 import '../bookings/booking_request_screen.dart';
+import '../post_item/post_item_screen.dart';
 import '../../providers/favorites_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/items_provider.dart';
 
 class ItemDetailScreen extends StatefulWidget {
   final Item item;
@@ -23,7 +25,7 @@ class ItemDetailScreen extends StatefulWidget {
 class _ItemDetailScreenState extends State<ItemDetailScreen> {
   int _currentImageIndex = 0;
 
-  void _openFullScreenImage(int initialIndex) {
+  void _openFullScreenImage(List<String> images, int initialIndex) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -34,7 +36,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
             iconTheme: const IconThemeData(color: Colors.white),
           ),
           body: Center(
-            child: widget.item.images.length > 1
+            child: images.length > 1
                 ? CarouselSlider(
                     options: CarouselOptions(
                       height: MediaQuery.of(context).size.height,
@@ -42,7 +44,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                       enableInfiniteScroll: false,
                       initialPage: initialIndex,
                     ),
-                    items: widget.item.images.map((imageUrl) {
+                    items: images.map((imageUrl) {
                       return InteractiveViewer(
                         minScale: 0.5,
                         maxScale: 4.0,
@@ -61,8 +63,8 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                     minScale: 0.5,
                     maxScale: 4.0,
                     child: CachedNetworkImage(
-                      imageUrl: widget.item.images.isNotEmpty
-                          ? widget.item.images.first
+                      imageUrl: images.isNotEmpty
+                          ? images.first
                           : 'https://placehold.co/1200x800/png',
                       fit: BoxFit.contain,
                       placeholder: (context, url) =>
@@ -79,9 +81,19 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final owner = widget.item.owner;
+    final itemsProvider = context.watch<ItemsProvider>();
+    final item = itemsProvider.getItemById(widget.item.id) ?? widget.item;
+    final owner = item.owner;
     final favorites = context.watch<FavoritesProvider>();
     final currentUser = context.watch<AuthProvider>().currentUser;
+    final isOwner = currentUser != null &&
+        (owner.id == currentUser.id ||
+            (currentUser.email.isNotEmpty &&
+                owner.email.isNotEmpty &&
+                owner.email == currentUser.email));
+    final isBorrow = item.type == ItemType.borrow;
+    final landmarkText =
+        item.landmark != null && item.landmark!.isNotEmpty ? item.landmark! : 'N/A';
 
     return Scaffold(
       body: SafeArea(
@@ -99,8 +111,9 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                       fit: StackFit.expand,
                       children: [
                         GestureDetector(
-                          onTap: () => _openFullScreenImage(_currentImageIndex),
-                          child: widget.item.images.length > 1
+                          onTap: () =>
+                              _openFullScreenImage(item.images, _currentImageIndex),
+                          child: item.images.length > 1
                               ? CarouselSlider(
                                   options: CarouselOptions(
                                     height: constraints.maxHeight,
@@ -113,7 +126,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                                       });
                                     },
                                   ),
-                                  items: widget.item.images.map((imageUrl) {
+                                  items: item.images.map((imageUrl) {
                                     return Builder(
                                       builder: (BuildContext context) {
                                         return CachedNetworkImage(
@@ -130,8 +143,8 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                                   }).toList(),
                                 )
                               : CachedNetworkImage(
-                                  imageUrl: widget.item.images.isNotEmpty
-                                      ? widget.item.images.first
+                                  imageUrl: item.images.isNotEmpty
+                                      ? item.images.first
                                       : 'https://placehold.co/1200x800/png',
                                   fit: BoxFit.cover,
                                   placeholder: (context, url) =>
@@ -160,14 +173,14 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                           ),
                         ),
                         // Page Indicator
-                        if (widget.item.images.length > 1)
+                        if (item.images.length > 1)
                           Positioned(
                             bottom: 16,
                             left: 0,
                             right: 0,
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
-                              children: widget.item.images
+                              children: item.images
                                   .asMap()
                                   .entries
                                   .map((entry) {
@@ -194,22 +207,51 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                 ),
               ),
               leading: IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.white),
                 onPressed: () => Navigator.pop(context),
+                icon: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.9),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.2),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  padding: const EdgeInsets.all(8),
+                  child: const Icon(Icons.arrow_back,
+                      color: AppTheme.foreground),
+                ),
               ),
               actions: [
                 IconButton(
-                  icon: Icon(
-                    favorites.isFavorite(widget.item.id)
-                        ? Icons.favorite
-                        : Icons.favorite_border,
-                    color: favorites.isFavorite(widget.item.id)
-                        ? Colors.red
-                        : Colors.white,
-                  ),
                   onPressed: () {
-                    favorites.toggleFavorite(widget.item.id);
+                    favorites.toggleFavorite(item.id);
                   },
+                  icon: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.9),
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    padding: const EdgeInsets.all(8),
+                    child: Icon(
+                      favorites.isFavorite(item.id)
+                          ? Icons.favorite
+                          : Icons.favorite_border,
+                      color: favorites.isFavorite(item.id)
+                          ? Colors.red
+                          : AppTheme.foreground,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -221,102 +263,84 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Type, Category & Condition Badges
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
+                    // Summary
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: AppTheme.primary.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
+                        Expanded(
                           child: Text(
-                            widget.item.type
-                                .toString()
-                                .split('.')
-                                .last
-                                .toUpperCase(),
+                            item.title,
                             style: const TextStyle(
-                              color: AppTheme.primary,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.foreground,
                             ),
                           ),
                         ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: Colors.blue.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            widget.item.category
-                                .toString()
-                                .split('.')
-                                .last
-                                .toUpperCase(),
-                            style: const TextStyle(
-                              color: Colors.blue,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
+                        const SizedBox(width: 12),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                _buildTypeChip(item.type),
+                                const SizedBox(width: 6),
+                                _buildStatusChip(item.available),
+                              ],
                             ),
-                          ),
+                          ],
                         ),
-                        if (widget.item.condition != null)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: Colors.grey.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              'CONDITION: ${widget.item.condition.toString().split('.').last.replaceAll('newItem', 'New').replaceAll('likeNew', 'Like New').replaceAllMapped(RegExp(r'([a-z])([A-Z])'), (Match m) => '${m[1]} ${m[2]}').toUpperCase()}',
-                              style: const TextStyle(
-                                color: Colors.black87,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
                       ],
                     ),
                     const SizedBox(height: 8),
-
-                    // Rating
-                    if (widget.item.rating != null)
-                      Row(
-                        children: [
-                          const Icon(Icons.star, color: Colors.amber, size: 20),
-                          const SizedBox(width: 4),
-                          Text(
-                            '${widget.item.rating} (${widget.item.reviewCount} reviews)',
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (!isBorrow)
+                                Text(
+                                  item.getPriceLabel(),
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppTheme.primary,
+                                  ),
+                                ),
+                              if (item.deposit != null)
+                                Text(
+                                  'Deposit: RM${item.deposit!.toInt()}',
+                                  style: const TextStyle(
+                                    color: AppTheme.mutedForeground,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                            ],
                           ),
-                        ],
-                      ),
-                    if (widget.item.rating != null) const SizedBox(height: 16),
-                    const SizedBox(height: 16),
-
-                    // Title
-                    Text(
-                      widget.item.title,
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.foreground,
-                      ),
+                        ),
+                        Row(
+                          children: [
+                            const Icon(Icons.star,
+                                color: Colors.amber, size: 18),
+                            const SizedBox(width: 4),
+                            Text(
+                              item.rating != null
+                                  ? '${item.rating!.toStringAsFixed(1)} (${item.reviewCount} reviews)'
+                                  : 'New',
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                                color: AppTheme.foreground,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 8),
-
-                    // Location
+                    const SizedBox(height: 12),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -324,134 +348,20 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                             size: 18, color: AppTheme.mutedForeground),
                         const SizedBox(width: 4),
                         Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                widget.item.address.isNotEmpty
-                                    ? widget.item.address
-                                    : '${widget.item.district}, ${widget.item.state}',
-                                style: const TextStyle(
-                                  color: AppTheme.mutedForeground,
-                                  fontSize: 14,
-                                ),
-                              ),
-                              if (widget.item.landmark != null &&
-                                  widget.item.landmark!.isNotEmpty)
-                                Text(
-                                  'Near ${widget.item.landmark}',
-                                  style: const TextStyle(
-                                    color: AppTheme.mutedForeground,
-                                    fontSize: 13,
-                                    fontStyle: FontStyle.italic,
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Status & Metadata
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: widget.item.available
-                                ? Colors.green.withOpacity(0.1)
-                                : Colors.red.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
                           child: Text(
-                            widget.item.available ? 'Available' : 'Unavailable',
-                            style: TextStyle(
-                              color: widget.item.available
-                                  ? Colors.green
-                                  : Colors.red,
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
+                            item.address.isNotEmpty
+                                ? item.address
+                                : '${item.district}, ${item.state}',
+                            style: const TextStyle(
+                              color: AppTheme.mutedForeground,
+                              fontSize: 14,
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        const Icon(Icons.calendar_today_outlined,
-                            size: 14, color: Colors.grey),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${widget.item.postedDate.day}/${widget.item.postedDate.month}/${widget.item.postedDate.year}',
-                          style:
-                              const TextStyle(color: Colors.grey, fontSize: 12),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 24),
-
-                    // Price (Only if not borrow)
-                    if (widget.item.type != ItemType.borrow)
-                      Column(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: AppTheme.background,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: AppTheme.border),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      'Price',
-                                      style: TextStyle(
-                                        color: AppTheme.mutedForeground,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      widget.item.getPriceLabel(),
-                                      style: const TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppTheme.primary,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                if (widget.item.deposit != null)
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: [
-                                      const Text(
-                                        'Security Deposit',
-                                        style: TextStyle(
-                                          color: AppTheme.mutedForeground,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        'RM${widget.item.deposit!.toInt()}',
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w600,
-                                          color: AppTheme.foreground,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                        ],
-                      ),
+                    const SizedBox(height: 12),
+                    const Divider(height: 32),
 
                     // Description
                     const Text(
@@ -464,18 +374,68 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      widget.item.description,
+                      item.description,
                       style: const TextStyle(
                         color: AppTheme.mutedForeground,
-                        fontSize: 16,
+                        fontSize: 15,
                         height: 1.6,
                       ),
                     ),
-                    const SizedBox(height: 32),
+                    const Divider(height: 32),
+
+                    // Details
+                    const Text(
+                      'Details',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.foreground,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildDetailItem(
+                            'Category',
+                            _capitalize(item.category
+                                .toString()
+                                .split('.')
+                                .last),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _buildDetailItem(
+                            'Condition',
+                            _formatCondition(item.condition),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildDetailItem(
+                            'Posted',
+                            '${item.postedDate.month}/${item.postedDate.day}/${item.postedDate.year}',
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _buildDetailItem(
+                            'Landmark',
+                            landmarkText,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Divider(height: 32),
 
                     // Owner Profile
                     const Text(
-                      'Lender',
+                      'Owner',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
@@ -531,26 +491,105 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                                     ),
                                   ],
                                 ),
+                                const SizedBox(height: 6),
+                                Row(
+                                  children: [
+                                    const Icon(Icons.location_on_outlined,
+                                        size: 14,
+                                        color: AppTheme.mutedForeground),
+                                    const SizedBox(width: 4),
+                                    Expanded(
+                                      child: Text(
+                                        owner.district,
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          color: AppTheme.mutedForeground,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    const Icon(Icons.calendar_today_outlined,
+                                        size: 14,
+                                        color: AppTheme.mutedForeground),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      'Joined ${owner.joinDate.month}/${owner.joinDate.day}/${owner.joinDate.year}',
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: AppTheme.mutedForeground,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ],
                             ),
                           ),
-                          IconButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ChatScreen(
-                                    otherUserId: owner.id,
-                                    otherUserName: owner.name,
-                                    otherUserAvatar: owner.avatar,
-                                    item: widget.item,
+                          if (!isOwner)
+                            IconButton(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ChatScreen(
+                                      otherUserId: owner.id,
+                                      otherUserName: owner.name,
+                                      otherUserAvatar: owner.avatar,
+                                      item: item,
+                                    ),
                                   ),
+                                );
+                              },
+                              icon: const Icon(Icons.chat_bubble_outline,
+                                  color: AppTheme.primary),
+                            ),
+                        ],
+                      ),
+                    ),
+                    const Divider(height: 32),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEFF6FF),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFBFDBFE)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: const [
+                          Row(
+                            children: [
+                              Icon(Icons.shield_outlined,
+                                  color: Color(0xFF2563EB)),
+                              SizedBox(width: 8),
+                              Text(
+                                'Safety Tips',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF1E3A8A),
                                 ),
-                              );
-                            },
-                            icon: const Icon(Icons.chat_bubble_outline,
-                                color: AppTheme.primary),
+                              ),
+                            ],
                           ),
+                          SizedBox(height: 8),
+                          Text('- Meet in a safe, public location if possible',
+                              style: TextStyle(color: Color(0xFF1E40AF))),
+                          SizedBox(height: 4),
+                          Text('- Inspect the item before making payment',
+                              style: TextStyle(color: Color(0xFF1E40AF))),
+                          SizedBox(height: 4),
+                          Text('- Use JiranLink\'s secure payment system',
+                              style: TextStyle(color: Color(0xFF1E40AF))),
+                          SizedBox(height: 4),
+                          Text('- Report any suspicious activity',
+                              style: TextStyle(color: Color(0xFF1E40AF))),
                         ],
                       ),
                     ),
@@ -575,59 +614,131 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
           ],
         ),
         child: SafeArea(
-          child: Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    side: const BorderSide(color: AppTheme.primary),
-                  ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ChatScreen(
-                          otherUserId: owner.id,
-                          otherUserName: owner.name,
-                          otherUserAvatar: owner.avatar,
-                          item: widget.item,
+          child: isOwner
+              ? Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          side: const BorderSide(color: AppTheme.primary),
                         ),
+                        onPressed: () async {
+                          final updated = await Navigator.push<bool>(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => PostItemScreen(existingItem: item),
+                            ),
+                          );
+                          if (!mounted) return;
+                          if (updated == true) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text('Listing updated.')),
+                            );
+                          }
+                        },
+                        child: const Text('Edit Listing'),
                       ),
-                    );
-                  },
-                  child: const Text('Chat'),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  onPressed: () async {
-                    if (currentUser == null) return;
-                    final sent = await Navigator.push<bool>(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => BookingRequestScreen(
-                          item: widget.item,
-                          borrower: currentUser,
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          backgroundColor: AppTheme.destructive,
                         ),
+                        onPressed: () async {
+                          final confirmed = await showDialog<bool>(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text('Delete listing?'),
+                              content: const Text(
+                                  'This will remove your listing permanently.'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.pop(context, false),
+                                  child: const Text('Cancel'),
+                                ),
+                                ElevatedButton(
+                                  onPressed: () =>
+                                      Navigator.pop(context, true),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppTheme.destructive,
+                                  ),
+                                  child: const Text('Delete'),
+                                ),
+                              ],
+                            ),
+                          );
+                          if (confirmed != true) return;
+                          await context.read<ItemsProvider>().deleteItem(item);
+                          if (!mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Listing deleted.')),
+                          );
+                          Navigator.pop(context);
+                        },
+                        child: const Text('Delete Listing'),
                       ),
-                    );
-                    if (!mounted) return;
-                    if (sent == true) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Request sent to owner.')),
-                      );
-                    }
-                  },
-                  child: Text(_actionLabel(widget.item.type)),
+                    ),
+                  ],
+                )
+              : Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          side: const BorderSide(color: AppTheme.primary),
+                        ),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ChatScreen(
+                                otherUserId: owner.id,
+                                otherUserName: owner.name,
+                                otherUserAvatar: owner.avatar,
+                                item: item,
+                              ),
+                            ),
+                          );
+                        },
+                        child: const Text('Chat'),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                        ),
+                        onPressed: () async {
+                          if (currentUser == null) return;
+                          final sent = await Navigator.push<bool>(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => BookingRequestScreen(
+                                item: item,
+                                borrower: currentUser,
+                              ),
+                            ),
+                          );
+                          if (!mounted) return;
+                          if (sent == true) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text('Request sent to owner.')),
+                            );
+                          }
+                        },
+                        child: Text(_actionLabel(item.type)),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
-          ),
         ),
       ),
     );
@@ -641,6 +752,98 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
         return 'Hire Now';
       case ItemType.rent:
         return 'Rent Now';
+    }
+  }
+
+  Widget _buildTypeChip(ItemType type) {
+    final label = _typeLabel(type).toUpperCase();
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppTheme.primary.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          color: AppTheme.primary,
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatusChip(bool available) {
+    final color = available ? Colors.green : Colors.red;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Text(
+        available ? 'AVAILABLE' : 'UNAVAILABLE',
+        style: TextStyle(
+          color: color,
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailItem(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            color: AppTheme.mutedForeground,
+            fontSize: 12,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: const TextStyle(
+            color: AppTheme.foreground,
+            fontSize: 14,
+            fontWeight: FontWeight.w400,
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _capitalize(String value) {
+    if (value.isEmpty) return value;
+    return value[0].toUpperCase() + value.substring(1).toLowerCase();
+  }
+
+  String _formatCondition(ItemCondition? condition) {
+    if (condition == null) return 'N/A';
+    switch (condition) {
+      case ItemCondition.newItem:
+        return 'New';
+      case ItemCondition.likeNew:
+        return 'Like New';
+      case ItemCondition.good:
+        return 'Good';
+      case ItemCondition.fair:
+        return 'Fair';
+    }
+  }
+
+  String _typeLabel(ItemType type) {
+    switch (type) {
+      case ItemType.borrow:
+        return 'Borrow';
+      case ItemType.hire:
+        return 'Hire';
+      case ItemType.rent:
+        return 'Rent';
     }
   }
 }

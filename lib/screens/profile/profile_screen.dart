@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/bookings_provider.dart';
 import '../../providers/items_provider.dart';
+import '../../models/booking.dart';
 import '../../theme/app_theme.dart';
 import 'favorites_screen.dart';
 import 'bookings_screen.dart';
@@ -28,30 +29,38 @@ class ProfileScreen extends StatelessWidget {
 
     final myListings =
         itemsProvider.allItems.where((i) => i.owner.id == user.id).length;
+    bool isSuccessful(BookingStatus status) {
+      return status == BookingStatus.accepted ||
+          status == BookingStatus.active ||
+          status == BookingStatus.completed;
+    }
+
     final myRentals = bookingsProvider.bookings.where((booking) {
       final ownerIdMatch = booking.ownerId == user.id;
       final ownerEmailMatch = user.email.isNotEmpty &&
           booking.owner.email.isNotEmpty &&
           booking.owner.email == user.email;
-      return ownerIdMatch || ownerEmailMatch;
+      return (ownerIdMatch || ownerEmailMatch) &&
+          isSuccessful(booking.status);
     }).length;
     final borrowed = bookingsProvider.bookings.where((booking) {
       final borrowerIdMatch = booking.borrowerId == user.id;
       final borrowerEmailMatch = user.email.isNotEmpty &&
           booking.borrower.email.isNotEmpty &&
           booking.borrower.email == user.email;
-      return borrowerIdMatch || borrowerEmailMatch;
+      return (borrowerIdMatch || borrowerEmailMatch) &&
+          isSuccessful(booking.status);
     }).length;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Profile'),
+        title: Text('Profile', style: const TextStyle(color: Colors.white)),
         backgroundColor: AppTheme.primary,
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings_outlined),
+            icon: const Icon(Icons.settings_outlined, color: Colors.white),
             onPressed: () {
               Navigator.push(
                 context,
@@ -87,12 +96,18 @@ class ProfileScreen extends StatelessWidget {
                         : null,
                   ),
                   const SizedBox(height: 16),
-                  Text(
-                    user.name,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.w600,
+                  SizedBox(
+                    width: double.infinity,
+                    child: Text(
+                      user.name,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   const SizedBox(height: 4),

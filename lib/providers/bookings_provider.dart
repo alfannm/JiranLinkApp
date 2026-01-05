@@ -94,6 +94,12 @@ class BookingsProvider extends ChangeNotifier {
     required DateTime endDate,
     String? requestMessage,
   }) async {
+    if (item.owner.id == borrower.id ||
+        (borrower.email.isNotEmpty &&
+            item.owner.email.isNotEmpty &&
+            item.owner.email == borrower.email)) {
+      throw StateError('You cannot book your own listing.');
+    }
     final docRef = _db.collection('bookings').doc();
     final totalUnits = calculateUnits(
       startDate: startDate,

@@ -119,6 +119,31 @@ class ItemsProvider extends ChangeNotifier {
     await docRef.set(itemData);
   }
 
+  Future<void> updateItem({
+    required Item item,
+    required List<XFile> newImages,
+    required List<String> existingImageUrls,
+  }) async {
+    final docRef = _db.collection('items').doc(item.id);
+    final uploadedUrls = newImages.isEmpty
+        ? <String>[]
+        : await _uploadImages(itemId: docRef.id, images: newImages);
+    final itemData = item.toJson();
+    itemData['images'] = [...existingImageUrls, ...uploadedUrls];
+    await docRef.set(itemData);
+  }
+
+  Future<void> deleteItem(Item item) async {
+    await _db.collection('items').doc(item.id).delete();
+    for (final imageUrl in item.images) {
+      try {
+        await _storage.refFromURL(imageUrl).delete();
+      } catch (_) {
+        // Ignore delete failures for non-storage URLs.
+      }
+    }
+  }
+
   List<Item> _filteredItems() {
     var filtered = _items.where((item) => item.available).toList();
 

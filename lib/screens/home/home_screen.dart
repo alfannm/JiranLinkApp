@@ -235,6 +235,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             Icons.business_center_outlined,
                             'Services',
                             ItemCategory.services),
+                        const SizedBox(width: 16),
+                        _buildCategoryItem(context, Icons.settings_outlined,
+                            'Others', ItemCategory.others),
                       ],
                     ),
                   ),
@@ -283,7 +286,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   crossAxisCount: 2,
                   crossAxisSpacing: 12,
                   mainAxisSpacing: 12,
-                  childAspectRatio: 0.60,
+                  childAspectRatio: 0.70,
                 ),
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
@@ -349,7 +352,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 crossAxisCount: 2,
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
-                childAspectRatio: 0.60,
+                childAspectRatio: 0.70,
               ),
               delegate: SliverChildBuilderDelegate(
                 (context, index) {

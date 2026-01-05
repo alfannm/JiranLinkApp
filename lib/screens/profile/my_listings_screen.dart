@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/favorites_provider.dart';
 import '../../providers/items_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/item_card.dart';
@@ -15,6 +16,7 @@ class MyListingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final currentUser = context.watch<AuthProvider>().currentUser;
     final all = context.watch<ItemsProvider>().allItems;
+    final favoritesProvider = context.watch<FavoritesProvider>();
     final myListings = currentUser == null
         ? <Item>[]
         : all.where((item) => item.owner.id == currentUser.id).toList();
@@ -38,26 +40,27 @@ class MyListingsScreen extends StatelessWidget {
       body: myListings.isEmpty
           ? const Center(child: Text('No listings yet'))
           : GridView.builder(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
-                childAspectRatio: 0.7,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
+                childAspectRatio: 0.70,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
               ),
               itemCount: myListings.length,
               itemBuilder: (context, index) {
+                final item = myListings[index];
                 return ItemCard(
-                  item: myListings[index],
-                  isFavorite:
-                      false, // My listings don't need fav toggle usually
-                  onToggleFavorite: () {},
+                  item: item,
+                  isFavorite: favoritesProvider.isFavorite(item.id),
+                  onToggleFavorite: () {
+                    favoritesProvider.toggleFavorite(item.id);
+                  },
                   onTap: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) =>
-                            ItemDetailScreen(item: myListings[index]),
+                        builder: (context) => ItemDetailScreen(item: item),
                       ),
                     );
                   },

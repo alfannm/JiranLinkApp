@@ -73,6 +73,9 @@ class MessagesProvider extends ChangeNotifier {
   }) async {
     final me = _currentUser;
     if (me == null) return;
+    if (otherUser.id == me.id) {
+      throw StateError('You cannot message yourself.');
+    }
 
     final resolvedChatId = chatId ??
         buildChatId(

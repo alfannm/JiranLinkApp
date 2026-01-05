@@ -56,39 +56,55 @@ class Item {
   });
 
   factory Item.fromJson(Map<String, dynamic> json) {
+    final postedRaw = json['postedDate'];
+    DateTime postedDate;
+    if (postedRaw is Timestamp) {
+      postedDate = postedRaw.toDate();
+    } else if (postedRaw is DateTime) {
+      postedDate = postedRaw;
+    } else if (postedRaw is String) {
+      postedDate = DateTime.tryParse(postedRaw) ?? DateTime.now();
+    } else {
+      postedDate = DateTime.now();
+    }
+
     return Item(
-      id: json['id'],
-      title: json['title'],
-      description: json['description'],
+      id: json['id'] ?? '',
+      title: json['title'] ?? '',
+      description: json['description'] ?? '',
       category: ItemCategory.values.firstWhere(
         (e) => e.toString().split('.').last == json['category'],
+        orElse: () => ItemCategory.others,
       ),
       type: ItemType.values.firstWhere(
         (e) => e.toString().split('.').last == json['type'],
+        orElse: () => ItemType.rent,
       ),
-      price: json['price'].toDouble(),
-      deposit: json['deposit']?.toDouble(),
+      price: (json['price'] as num?)?.toDouble() ?? 0,
+      deposit: (json['deposit'] as num?)?.toDouble(),
       priceUnit: PriceUnit.values.firstWhere(
         (e) => e.toString().split('.').last == json['priceUnit'],
+        orElse: () => PriceUnit.day,
       ),
-      images: List<String>.from(json['images']),
-      owner: User.fromJson(json['owner']),
-      district: json['district'],
+      images: List<String>.from(json['images'] ?? const []),
+      owner: User.fromJson(Map<String, dynamic>.from(json['owner'] ?? {})),
+      district: json['district'] ?? '',
       state: json['state'] ?? '',
-      address: json['address'],
+      address: json['address'] ?? '',
       landmark: json['landmark'],
-      latitude: json['latitude'].toDouble(),
-      longitude: json['longitude'].toDouble(),
-      available: json['available'],
+      latitude: (json['latitude'] as num?)?.toDouble() ?? 0,
+      longitude: (json['longitude'] as num?)?.toDouble() ?? 0,
+      available: json['available'] ?? true,
       condition: json['condition'] != null
           ? ItemCondition.values.firstWhere(
               (e) => e.toString().split('.').last == json['condition'],
+              orElse: () => ItemCondition.good,
             )
           : null,
-      postedDate: DateTime.parse(json['postedDate']),
-      views: json['views'],
-      rating: json['rating']?.toDouble(),
-      reviewCount: json['reviewCount'],
+      postedDate: postedDate,
+      views: (json['views'] as num?)?.toInt() ?? 0,
+      rating: (json['rating'] as num?)?.toDouble(),
+      reviewCount: (json['reviewCount'] as num?)?.toInt(),
     );
   }
 

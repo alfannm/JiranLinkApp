@@ -92,7 +92,11 @@ class ItemCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
-                      item.type.toString().split('.').last == 'hire' ? 'Hire' : 'Rent',
+                      item.type == ItemType.hire
+                          ? 'Hire'
+                          : item.type == ItemType.borrow
+                              ? 'Borrow'
+                              : 'Rent',
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 10,
@@ -124,21 +128,7 @@ class ItemCard extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 4),
-                    
-                    // Description (Restricted lines to prevent overflow)
-                    Text(
-                      item.description,
-                      style: const TextStyle(
-                        color: Color(0xFF6B7280),
-                        fontSize: 11,
-                        height: 1.2,
-                      ),
-                      maxLines: 1, // Reduced to 1 line to save space
-                      overflow: TextOverflow.ellipsis,
-                    ),
-
-                    const Spacer(), // Pushes everything below to the bottom
+                    const SizedBox(height: 6),
 
                     // Location Row
                     Row(
@@ -160,20 +150,38 @@ class ItemCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 6),
 
-                    // Price & Rating Row
+                    // Price/Deposit & Rating Row
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Flexible( // Allows price to shrink if needed
-                          child: Text(
-                            item.getPriceLabel(),
-                            style: const TextStyle(
-                              color: Color(0xFF10B981),
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                        Flexible(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                item.type == ItemType.borrow
+                                    ? 'Borrow'
+                                    : item.getPriceLabel(),
+                                style: const TextStyle(
+                                  color: Color(0xFF10B981),
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              if (item.deposit != null)
+                                Text(
+                                  'Deposit RM${item.deposit!.toStringAsFixed(0)}',
+                                  style: const TextStyle(
+                                    color: Color(0xFF9CA3AF),
+                                    fontSize: 10,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                            ],
                           ),
                         ),
                         Row(
@@ -181,7 +189,9 @@ class ItemCard extends StatelessWidget {
                             const Icon(Icons.star, size: 14, color: Colors.amber),
                             const SizedBox(width: 2),
                             Text(
-                              item.rating != null ? item.rating!.toStringAsFixed(1) : 'New',
+                              item.rating != null
+                                  ? item.rating!.toStringAsFixed(1)
+                                  : 'New',
                               style: const TextStyle(
                                 color: Color(0xFF374151),
                                 fontSize: 11,

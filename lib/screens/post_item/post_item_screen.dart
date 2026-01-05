@@ -30,7 +30,9 @@ const Map<String, List<String>> malaysiaLocations = {
 };
 
 class PostItemScreen extends StatefulWidget {
-  const PostItemScreen({super.key});
+  final Item? existingItem;
+
+  const PostItemScreen({super.key, this.existingItem});
 
   @override
   State<PostItemScreen> createState() => _PostItemScreenState();
@@ -47,6 +49,7 @@ class _PostItemScreenState extends State<PostItemScreen> {
   final _landmarkController = TextEditingController();
 
   final List<XFile> _images = [];
+  final List<String> _existingImageUrls = [];
   final ImagePicker _picker = ImagePicker();
   final LocationService _locationService = LocationService();
 
@@ -63,6 +66,10 @@ class _PostItemScreenState extends State<PostItemScreen> {
   String? _selectedDistrict;
   String? _autoDetectedState;
   String? _autoDetectedDistrict;
+
+  bool get _isEditing => widget.existingItem != null;
+  int get _totalImages => _existingImageUrls.length + _images.length;
+  bool get _canAddMorePhotos => _totalImages < _maxPhotos;
 
   String _capitalizeFirst(String value) {
     if (value.isEmpty) return value;
@@ -166,7 +173,7 @@ class _PostItemScreenState extends State<PostItemScreen> {
     if (!mounted) return;
     if (files.isEmpty) return;
 
-    final remaining = _maxPhotos - _images.length;
+    final remaining = _maxPhotos - _totalImages;
     if (remaining <= 0) {
       _showPhotoLimitMessage();
       return;
@@ -183,7 +190,7 @@ class _PostItemScreenState extends State<PostItemScreen> {
   }
 
   Future<void> _takePhoto() async {
-    if (_images.length >= _maxPhotos) {
+    if (_totalImages >= _maxPhotos) {
       _showPhotoLimitMessage();
       return;
     }
@@ -201,7 +208,7 @@ class _PostItemScreenState extends State<PostItemScreen> {
   }
 
   Future<void> _showImageSourceSheet() async {
-    if (_images.length >= _maxPhotos) {
+    if (_totalImages >= _maxPhotos) {
       _showPhotoLimitMessage();
       return;
     }
@@ -241,6 +248,68 @@ class _PostItemScreenState extends State<PostItemScreen> {
         );
       },
     );
+  }
+
+  Future<void> _showNetworkImagePreview(String imageUrl) async {
+    await showGeneralDialog<void>(
+      context: context,
+      barrierLabel: 'Image preview',
+      barrierDismissible: true,
+      barrierColor: Colors.black87,
+      pageBuilder: (context, _, __) {
+        return SafeArea(
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: Image.network(imageUrl, fit: BoxFit.contain),
+              ),
+              Positioned(
+                top: 16,
+                right: 16,
+                child: GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                    ),
+                    padding: const EdgeInsets.all(8),
+                    child: const Icon(Icons.close, color: Colors.white),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    final item = widget.existingItem;
+    if (item == null) return;
+
+    _titleController.text = item.title;
+    _descriptionController.text = item.description;
+    _priceController.text = item.price.toStringAsFixed(0);
+    if (item.deposit != null) {
+      _depositController.text = item.deposit!.toStringAsFixed(0);
+    }
+    _addressController.text = item.address;
+    if (item.landmark != null) {
+      _landmarkController.text = item.landmark!;
+    }
+    _selectedCategory = item.category;
+    _selectedType = item.type;
+    _selectedPriceUnit = item.priceUnit;
+    _selectedCondition = item.condition ?? ItemCondition.good;
+    _selectedState = item.state;
+    _selectedDistrict = item.district;
+    _latitude = item.latitude;
+    _longitude = item.longitude;
+    _existingImageUrls.addAll(item.images);
   }
 
   @override
@@ -312,7 +381,7 @@ class _PostItemScreenState extends State<PostItemScreen> {
 
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) return;
-    if (_images.isEmpty) {
+    if (_totalImages == 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please add at least one photo.')),
       );
@@ -321,6 +390,19 @@ class _PostItemScreenState extends State<PostItemScreen> {
 
     final currentUser = context.read<AuthProvider>().currentUser;
     if (currentUser == null) return;
+    final existingItem = widget.existingItem;
+    if (_isEditing && existingItem != null) {
+      final ownerMatches = existingItem.owner.id == currentUser.id ||
+          (currentUser.email.isNotEmpty &&
+              existingItem.owner.email.isNotEmpty &&
+              existingItem.owner.email == currentUser.email);
+      if (!ownerMatches) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('You can only edit your own listings.')),
+        );
+        return;
+      }
+    }
 
     if (_selectedState == null || _selectedDistrict == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -361,47 +443,66 @@ class _PostItemScreenState extends State<PostItemScreen> {
       finalDeposit = null;
     }
 
-    final newItem = Item(
-      id: const Uuid().v4(),
-      title: _titleController.text.trim(),
-      description: _descriptionController.text.trim(),
-      category: _selectedCategory,
-      type: _selectedType,
-      price: finalPrice,
-      deposit: finalDeposit,
-      priceUnit: _selectedPriceUnit,
-      images: const [],
-      owner: currentUser,
-      district: _selectedDistrict!,
-      state: _selectedState!,
-      address: _addressController.text.trim(),
-      landmark: _landmarkController.text.trim().isNotEmpty
-          ? _landmarkController.text.trim()
-          : null,
-      latitude: _latitude ?? 0,
-      longitude: _longitude ?? 0,
-      available: true,
-      condition: _selectedCondition,
-      postedDate: DateTime.now(),
-      views: 0,
-      rating: null,
-      reviewCount: 0,
-    );
-
     try {
-      await context.read<ItemsProvider>().createItem(
-            item: newItem,
-            images: _images,
-          );
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Item posted successfully!')),
+      final isServiceCategory = _selectedCategory == ItemCategory.skills ||
+          _selectedCategory == ItemCategory.services;
+      final updatedItem = Item(
+        id: existingItem?.id ?? const Uuid().v4(),
+        title: _titleController.text.trim(),
+        description: _descriptionController.text.trim(),
+        category: _selectedCategory,
+        type: _selectedType,
+        price: finalPrice,
+        deposit: finalDeposit,
+        priceUnit: _selectedPriceUnit,
+        images: _existingImageUrls,
+        owner: currentUser,
+        district: _selectedDistrict!,
+        state: _selectedState!,
+        address: _addressController.text.trim(),
+        landmark: _landmarkController.text.trim().isNotEmpty
+            ? _landmarkController.text.trim()
+            : null,
+        latitude: _latitude ?? existingItem?.latitude ?? 0,
+        longitude: _longitude ?? existingItem?.longitude ?? 0,
+        available: existingItem?.available ?? true,
+        condition: isServiceCategory ? null : _selectedCondition,
+        postedDate: existingItem?.postedDate ?? DateTime.now(),
+        views: existingItem?.views ?? 0,
+        rating: existingItem?.rating,
+        reviewCount: existingItem?.reviewCount ?? 0,
       );
-      Navigator.pop(context);
+
+      if (_isEditing) {
+        await context.read<ItemsProvider>().updateItem(
+              item: updatedItem,
+              newImages: _images,
+              existingImageUrls: _existingImageUrls,
+            );
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Listing updated successfully!')),
+        );
+      } else {
+        await context.read<ItemsProvider>().createItem(
+              item: updatedItem,
+              images: _images,
+            );
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Item posted successfully!')),
+        );
+      }
+      if (!mounted) return;
+      Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to post item: $e')),
+        SnackBar(
+          content: Text(
+            _isEditing ? 'Failed to update item: $e' : 'Failed to post item: $e',
+          ),
+        ),
       );
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
@@ -438,13 +539,16 @@ class _PostItemScreenState extends State<PostItemScreen> {
     }
     const double singleImageSize = 120.0;
     const double imageListPadding = 8.0;
+    final hasImages = _totalImages > 0;
     final imageBoxHeight =
-        _images.isEmpty ? 200.0 : (singleImageSize + (imageListPadding * 2));
-    final canAddMorePhotos = _images.length < _maxPhotos;
+        hasImages ? (singleImageSize + (imageListPadding * 2)) : 200.0;
+    final canAddMorePhotos = _canAddMorePhotos;
+    final existingImageCount = _existingImageUrls.length;
+    final totalImageCount = existingImageCount + _images.length;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Post Item'),
+        title: Text(_isEditing ? 'Edit Item' : 'Post Item'),
         backgroundColor: AppTheme.cardBackground,
       ),
       body: SingleChildScrollView(
@@ -455,7 +559,7 @@ class _PostItemScreenState extends State<PostItemScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Image Picker Placeholder
-              _images.isEmpty
+              !hasImages
                   ? GestureDetector(
                       onTap: _showImageSourceSheet,
                       child: Container(
@@ -496,23 +600,39 @@ class _PostItemScreenState extends State<PostItemScreen> {
                           scrollDirection: Axis.horizontal,
                           padding: const EdgeInsets.all(imageListPadding),
                           itemBuilder: (context, index) {
-                            if (canAddMorePhotos && index == _images.length) {
+                            if (canAddMorePhotos && index == totalImageCount) {
                               return _buildAddPhotoTile(size: singleImageSize);
                             }
-                            final image = _images[index];
+                            final isExisting = index < existingImageCount;
+                            final imageIndex =
+                                isExisting ? index : index - existingImageCount;
+                            final imageWidget = isExisting
+                                ? Image.network(
+                                    _existingImageUrls[imageIndex],
+                                    width: singleImageSize,
+                                    height: singleImageSize,
+                                    fit: BoxFit.cover,
+                                  )
+                                : _buildImage(
+                                    _images[imageIndex],
+                                    width: singleImageSize,
+                                    height: singleImageSize,
+                                  );
+                            final onPreview = isExisting
+                                ? () => _showNetworkImagePreview(
+                                      _existingImageUrls[imageIndex],
+                                    )
+                                : () => _showImagePreview(_images[imageIndex]);
+
                             return Stack(
                               children: [
                                 GestureDetector(
-                                  onTap: () => _showImagePreview(image),
+                                  onTap: onPreview,
                                   child: SizedBox.square(
                                     dimension: singleImageSize,
                                     child: ClipRRect(
                                       borderRadius: BorderRadius.circular(10),
-                                      child: _buildImage(
-                                        image,
-                                        width: singleImageSize,
-                                        height: singleImageSize,
-                                      ),
+                                      child: imageWidget,
                                     ),
                                   ),
                                 ),
@@ -522,7 +642,11 @@ class _PostItemScreenState extends State<PostItemScreen> {
                                   child: GestureDetector(
                                     onTap: () {
                                       setState(() {
-                                        _images.removeAt(index);
+                                        if (isExisting) {
+                                          _existingImageUrls.removeAt(imageIndex);
+                                        } else {
+                                          _images.removeAt(imageIndex);
+                                        }
                                       });
                                     },
                                     child: Container(
@@ -543,7 +667,7 @@ class _PostItemScreenState extends State<PostItemScreen> {
                             );
                           },
                           separatorBuilder: (_, __) => const SizedBox(width: 12),
-                          itemCount: _images.length + (canAddMorePhotos ? 1 : 0),
+                          itemCount: totalImageCount + (canAddMorePhotos ? 1 : 0),
                         ),
                       ),
                     ),
@@ -893,10 +1017,12 @@ class _PostItemScreenState extends State<PostItemScreen> {
                             color: Colors.white,
                           ),
                         )
-                      : const Text(
-                          'Post Item',
-                          style:
-                              TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      : Text(
+                          _isEditing ? 'Save Changes' : 'Post Item',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                 ),
               ),
