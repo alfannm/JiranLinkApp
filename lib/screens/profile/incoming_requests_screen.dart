@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../models/booking.dart';
 import '../../providers/bookings_provider.dart';
@@ -10,7 +11,27 @@ class IncomingRequestsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final requests = context.watch<BookingsProvider>().incomingRequests;
+    final currentUser = context.watch<AuthProvider>().currentUser;
+    final allBookings = context.watch<BookingsProvider>().bookings;
+    final requests = currentUser == null
+        ? <Booking>[]
+        : allBookings
+            .where((booking) {
+            final ownerIdMatch = booking.ownerId == currentUser.id;
+            final ownerEmailMatch = currentUser.email.isNotEmpty &&
+                booking.owner.email.isNotEmpty &&
+                booking.owner.email == currentUser.email;
+            return ownerIdMatch || ownerEmailMatch;
+          })
+            .toList()
+      ..sort((a, b) {
+        final aPending = a.status == BookingStatus.pending;
+        final bPending = b.status == BookingStatus.pending;
+        if (aPending != bPending) {
+          return aPending ? -1 : 1;
+        }
+        return b.createdAt.compareTo(a.createdAt);
+      });
 
     return Scaffold(
       appBar: AppBar(
@@ -18,7 +39,7 @@ class IncomingRequestsScreen extends StatelessWidget {
         backgroundColor: AppTheme.cardBackground,
       ),
       body: requests.isEmpty
-          ? const Center(child: Text('No new requests'))
+          ? const Center(child: Text('No requests yet'))
           : ListView.separated(
               padding: const EdgeInsets.all(16),
               itemCount: requests.length,
@@ -36,10 +57,71 @@ class RequestCard extends StatelessWidget {
 
   const RequestCard({super.key, required this.booking});
 
+  Future<void> _handleDecision(BuildContext context,
+      {required bool accept}) async {
+    final controller = TextEditingController();
+    bool canSubmit = accept;
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text(accept ? 'Accept Request' : 'Decline Request'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: controller,
+                    maxLines: 3,
+                    decoration: InputDecoration(
+                      labelText: 'Message to borrower',
+                      hintText: accept
+                          ? 'Optional message'
+                          : 'Please provide a reason',
+                    ),
+                    onChanged: (value) {
+                      if (accept) return;
+                      setState(() {
+                        canSubmit = value.trim().isNotEmpty;
+                      });
+                    },
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: canSubmit
+                      ? () => Navigator.pop(context, controller.text.trim())
+                      : null,
+                  child: const Text('Send'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+    controller.dispose();
+    if (result == null) return;
+
+    final message = result.isEmpty ? null : result;
+    final provider = context.read<BookingsProvider>();
+    if (accept) {
+      await provider.acceptRequest(booking.id, message: message);
+    } else {
+      await provider.rejectRequest(booking.id, message: message);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final dateFormat = DateFormat('MMM d, y');
-    final provider = context.read<BookingsProvider>();
+    final statusColor = _getStatusColor(booking.status);
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -81,6 +163,22 @@ class RequestCard extends StatelessWidget {
                       ),
                     ),
                   ],
+                ),
+              ),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: statusColor.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  booking.status.toString().split('.').last.toUpperCase(),
+                  style: TextStyle(
+                    color: statusColor,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ],
@@ -133,34 +231,91 @@ class RequestCard extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () {
-                    provider.rejectRequest(booking.id);
-                  },
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppTheme.destructive,
-                    side: const BorderSide(color: AppTheme.destructive),
+          if ((booking.requestMessage ?? '').isNotEmpty) ...[
+            const SizedBox(height: 12),
+            _buildDetailRow(
+              'Notes',
+              booking.requestMessage!,
+            ),
+          ],
+          if ((booking.ownerResponseMessage ?? '').isNotEmpty) ...[
+            const SizedBox(height: 12),
+            _buildDetailRow('Your Response', booking.ownerResponseMessage!),
+          ],
+          if (booking.status == BookingStatus.pending) ...[
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () {
+                      _handleDecision(context, accept: false);
+                    },
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppTheme.destructive,
+                      side: const BorderSide(color: AppTheme.destructive),
+                    ),
+                    child: const Text('Decline'),
                   ),
-                  child: const Text('Decline'),
                 ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () {
-                    provider.acceptRequest(booking.id);
-                  },
-                  child: const Text('Accept'),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      _handleDecision(context, accept: true);
+                    },
+                    child: const Text('Accept'),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppTheme.background,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              color: AppTheme.mutedForeground,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: const TextStyle(fontWeight: FontWeight.w500),
           ),
         ],
       ),
     );
+  }
+
+  Color _getStatusColor(BookingStatus status) {
+    switch (status) {
+      case BookingStatus.active:
+        return Colors.blue;
+      case BookingStatus.pending:
+        return Colors.orange;
+      case BookingStatus.accepted:
+        return Colors.teal;
+      case BookingStatus.completed:
+        return Colors.green;
+      case BookingStatus.cancelled:
+        return Colors.red;
+      case BookingStatus.rejected:
+        return Colors.redAccent;
+    }
   }
 }

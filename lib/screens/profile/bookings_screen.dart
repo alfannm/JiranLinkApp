@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../theme/app_theme.dart';
 import '../../models/booking.dart';
 import '../../providers/bookings_provider.dart';
+import '../bookings/booking_details_screen.dart';
 
 class BookingsScreen extends StatelessWidget {
   const BookingsScreen({super.key});
@@ -26,10 +27,14 @@ class BookingsScreen extends StatelessWidget {
               itemBuilder: (context, index) {
                 return BookingCard(
                   booking: bookings[index],
-                  onPay: () {
-                    context
-                        .read<BookingsProvider>()
-                        .markPaymentReceived(bookings[index].id);
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            BookingDetailsScreen(booking: bookings[index]),
+                      ),
+                    );
                   },
                 );
               },
@@ -40,12 +45,12 @@ class BookingsScreen extends StatelessWidget {
 
 class BookingCard extends StatelessWidget {
   final Booking booking;
-  final VoidCallback onPay;
+  final VoidCallback onTap;
 
   const BookingCard({
     super.key,
     required this.booking,
-    required this.onPay,
+    required this.onTap,
   });
 
   @override
@@ -53,93 +58,104 @@ class BookingCard extends StatelessWidget {
     final statusColor = _getStatusColor(booking.status);
     final dateFormat = DateFormat('MMM d, y');
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.border),
-      ),
-      child: Column(
-        children: [
-          Row(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppTheme.border),
+          ),
+          child: Column(
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.network(
-                  booking.item.images.first,
-                  width: 60,
-                  height: 60,
-                  fit: BoxFit.cover,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      booking.item.title,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
+              Row(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.network(
+                      booking.item.images.first,
+                      width: 60,
+                      height: 60,
+                      fit: BoxFit.cover,
                     ),
-                    const SizedBox(height: 4),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: statusColor.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        booking.status.toString().split('.').last.toUpperCase(),
-                        style: TextStyle(
-                          color: statusColor,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          booking.item.title,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
                         ),
-                      ),
+                        const SizedBox(height: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: statusColor.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            booking.status
+                                .toString()
+                                .split('.')
+                                .last
+                                .toUpperCase(),
+                            style: TextStyle(
+                              color: statusColor,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                  Text(
+                    'RM${booking.totalPrice}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: AppTheme.primary,
+                    ),
+                  ),
+                ],
               ),
-              Text(
-                'RM${booking.totalPrice}',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                  color: AppTheme.primary,
-                ),
+              const SizedBox(height: 16),
+              const Divider(),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '${dateFormat.format(booking.startDate)} - ${dateFormat.format(booking.endDate)}',
+                    style: const TextStyle(
+                      color: AppTheme.mutedForeground,
+                      fontSize: 14,
+                    ),
+                  ),
+                  if (booking.status == BookingStatus.accepted &&
+                      booking.paymentStatus == PaymentStatus.pending)
+                    ElevatedButton(
+                      onPressed: onTap,
+                      child: const Text('View & Pay'),
+                    )
+                  else
+                    const Icon(Icons.arrow_forward_ios,
+                        size: 14, color: AppTheme.mutedForeground),
+                ],
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          const Divider(),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                '${dateFormat.format(booking.startDate)} - ${dateFormat.format(booking.endDate)}',
-                style: const TextStyle(
-                  color: AppTheme.mutedForeground,
-                  fontSize: 14,
-                ),
-              ),
-              if (booking.status == BookingStatus.accepted &&
-                  booking.paymentStatus == PaymentStatus.pending)
-                ElevatedButton(
-                  onPressed: onPay,
-                  child: const Text('Pay Now'),
-                )
-              else
-                const Icon(Icons.arrow_forward_ios,
-                    size: 14, color: AppTheme.mutedForeground),
-            ],
-          ),
-        ],
+        ),
       ),
     );
   }

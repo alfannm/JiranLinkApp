@@ -7,8 +7,8 @@ import '../../models/item.dart';
 import '../../theme/app_theme.dart';
 
 import '../messages/chat_screen.dart';
+import '../bookings/booking_request_screen.dart';
 import '../../providers/favorites_provider.dart';
-import '../../providers/bookings_provider.dart';
 import '../../providers/auth_provider.dart';
 
 class ItemDetailScreen extends StatefulWidget {
@@ -81,7 +81,6 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
   Widget build(BuildContext context) {
     final owner = widget.item.owner;
     final favorites = context.watch<FavoritesProvider>();
-    final bookings = context.read<BookingsProvider>();
     final currentUser = context.watch<AuthProvider>().currentUser;
 
     return Scaffold(
@@ -606,29 +605,25 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
-                  onPressed: () {
+                  onPressed: () async {
                     if (currentUser == null) return;
-                    bookings.createBookingRequest(
-                      item: widget.item,
-                      borrower: currentUser,
-                      message:
-                          'Hi, I would like to request ${widget.item.title}.',
-                    );
-                    Navigator.push(
+                    final sent = await Navigator.push<bool>(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => ChatScreen(
-                          otherUserId: owner.id,
-                          otherUserName: owner.name,
-                          otherUserAvatar: owner.avatar,
+                        builder: (context) => BookingRequestScreen(
                           item: widget.item,
-                          initialMessage:
-                              'Hi, I would like to request ${widget.item.title}.',
+                          borrower: currentUser,
                         ),
                       ),
                     );
+                    if (!mounted) return;
+                    if (sent == true) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Request sent to owner.')),
+                      );
+                    }
                   },
-                  child: const Text('Request Item'),
+                  child: Text(_actionLabel(widget.item.type)),
                 ),
               ),
             ],
@@ -636,5 +631,16 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
         ),
       ),
     );
+  }
+
+  String _actionLabel(ItemType type) {
+    switch (type) {
+      case ItemType.borrow:
+        return 'Borrow Now';
+      case ItemType.hire:
+        return 'Hire Now';
+      case ItemType.rent:
+        return 'Rent Now';
+    }
   }
 }

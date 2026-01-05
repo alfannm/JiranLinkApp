@@ -9,7 +9,9 @@ class Booking {
   final String id;
   final Item item;
   final User borrower;
+  final String borrowerId;
   final User owner;
+  final String ownerId;
   final DateTime startDate;
   final DateTime endDate;
   final BookingStatus status;
@@ -19,6 +21,8 @@ class Booking {
   final String currency;
   final double totalPrice;
   final DateTime createdAt;
+  final String? requestMessage;
+  final String? ownerResponseMessage;
 
   Booking({
     required this.id,
@@ -34,14 +38,21 @@ class Booking {
     required this.currency,
     required this.totalPrice,
     required this.createdAt,
-  });
+    this.requestMessage,
+    this.ownerResponseMessage,
+    String? borrowerId,
+    String? ownerId,
+  })  : borrowerId = borrowerId ?? borrower.id,
+        ownerId = ownerId ?? owner.id;
 
   factory Booking.fromJson(Map<String, dynamic> json) {
     return Booking(
       id: json['id'],
       item: Item.fromJson(json['item']),
       borrower: User.fromJson(json['borrower']),
+      borrowerId: json['borrowerId'],
       owner: User.fromJson(json['owner']),
+      ownerId: json['ownerId'],
       startDate: DateTime.parse(json['startDate']),
       endDate: DateTime.parse(json['endDate']),
       status: BookingStatus.values.firstWhere(
@@ -55,6 +66,8 @@ class Booking {
       currency: json['currency'],
       totalPrice: json['totalPrice'].toDouble(),
       createdAt: DateTime.parse(json['createdAt']),
+      requestMessage: json['requestMessage'],
+      ownerResponseMessage: json['ownerResponseMessage'],
     );
   }
 
@@ -64,7 +77,9 @@ class Booking {
       id: doc.id,
       item: Item.fromJson(Map<String, dynamic>.from(data['item'] ?? {})),
       borrower: User.fromJson(Map<String, dynamic>.from(data['borrower'] ?? {})),
+      borrowerId: data['borrowerId'],
       owner: User.fromJson(Map<String, dynamic>.from(data['owner'] ?? {})),
+      ownerId: data['ownerId'],
       startDate:
           (data['startDate'] as Timestamp?)?.toDate() ?? DateTime.now(),
       endDate: (data['endDate'] as Timestamp?)?.toDate() ?? DateTime.now(),
@@ -82,6 +97,8 @@ class Booking {
       totalPrice: (data['totalPrice'] as num?)?.toDouble() ?? 0,
       createdAt:
           (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      requestMessage: data['requestMessage'],
+      ownerResponseMessage: data['ownerResponseMessage'],
     );
   }
 
@@ -89,9 +106,9 @@ class Booking {
     return {
       'itemId': item.id,
       'item': item.toJson(),
-      'borrowerId': borrower.id,
+      'borrowerId': borrowerId,
       'borrower': borrower.toJson(),
-      'ownerId': owner.id,
+      'ownerId': ownerId,
       'owner': owner.toJson(),
       'startDate': startDate,
       'endDate': endDate,
@@ -102,6 +119,8 @@ class Booking {
       'currency': currency,
       'totalPrice': totalPrice,
       'createdAt': createdAt,
+      'requestMessage': requestMessage,
+      'ownerResponseMessage': ownerResponseMessage,
     };
   }
 }

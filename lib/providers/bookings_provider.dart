@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
@@ -14,6 +15,8 @@ class BookingsProvider extends ChangeNotifier {
   final Map<String, Booking> _bookingMap = {};
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _borrowerSub;
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _ownerSub;
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _borrowerEmailSub;
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _ownerEmailSub;
 
   List<Booking> get bookings =>
       _bookingMap.values.toList()..sort((a, b) => b.createdAt.compareTo(a.createdAt));
@@ -21,14 +24,16 @@ class BookingsProvider extends ChangeNotifier {
   List<Booking> get myBookings {
     final user = _currentUser;
     if (user == null) return [];
-    return bookings.where((b) => b.borrower.id == user.id).toList();
+    return bookings.where((b) => _matchesUser(b, user, isOwner: false)).toList();
   }
 
   List<Booking> get incomingRequests {
     final user = _currentUser;
     if (user == null) return [];
     return bookings
-        .where((b) => b.owner.id == user.id && b.status == BookingStatus.pending)
+        .where((b) =>
+            _matchesUser(b, user, isOwner: true) &&
+            b.status == BookingStatus.pending)
         .toList();
   }
 
@@ -40,8 +45,12 @@ class BookingsProvider extends ChangeNotifier {
     _bookingMap.clear();
     _borrowerSub?.cancel();
     _ownerSub?.cancel();
+    _borrowerEmailSub?.cancel();
+    _ownerEmailSub?.cancel();
     _borrowerSub = null;
     _ownerSub = null;
+    _borrowerEmailSub = null;
+    _ownerEmailSub = null;
 
     if (_currentUser == null) {
       notifyListeners();
@@ -68,21 +77,37 @@ class BookingsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  bool _matchesUser(Booking booking, app.User user, {required bool isOwner}) {
+    final id = isOwner ? booking.ownerId : booking.borrowerId;
+    if (id == user.id) return true;
+    final email = user.email;
+    if (email.isEmpty) return false;
+    final bookingEmail =
+        isOwner ? booking.owner.email : booking.borrower.email;
+    return bookingEmail.isNotEmpty && bookingEmail == email;
+  }
+
   Future<void> createBookingRequest({
     required Item item,
     required app.User borrower,
-    String? message,
+    required DateTime startDate,
+    required DateTime endDate,
+    String? requestMessage,
   }) async {
     final docRef = _db.collection('bookings').doc();
-    final totalDays = _estimateTotalDays(item);
-    final total = item.price * totalDays;
+    final totalUnits = calculateUnits(
+      startDate: startDate,
+      endDate: endDate,
+      priceUnit: item.priceUnit,
+    );
+    final total = item.price * totalUnits;
     final booking = Booking(
       id: docRef.id,
       item: item,
       borrower: borrower,
       owner: item.owner,
-      startDate: DateTime.now(),
-      endDate: DateTime.now().add(Duration(days: totalDays)),
+      startDate: startDate,
+      endDate: endDate,
       status: BookingStatus.pending,
       paymentStatus: PaymentStatus.pending,
       depositAmount: item.deposit,
@@ -90,23 +115,23 @@ class BookingsProvider extends ChangeNotifier {
       currency: 'MYR',
       totalPrice: total,
       createdAt: DateTime.now(),
+      requestMessage: requestMessage,
     );
 
-    final data = booking.toJson();
-    data['requestMessage'] = message;
-
-    await docRef.set(data);
+    await docRef.set(booking.toJson());
   }
 
-  Future<void> acceptRequest(String bookingId) async {
+  Future<void> acceptRequest(String bookingId, {String? message}) async {
     await _db.collection('bookings').doc(bookingId).update({
       'status': BookingStatus.accepted.toString().split('.').last,
+      'ownerResponseMessage': message,
     });
   }
 
-  Future<void> rejectRequest(String bookingId) async {
+  Future<void> rejectRequest(String bookingId, {String? message}) async {
     await _db.collection('bookings').doc(bookingId).update({
       'status': BookingStatus.rejected.toString().split('.').last,
+      'ownerResponseMessage': message,
     });
   }
 
@@ -129,16 +154,26 @@ class BookingsProvider extends ChangeNotifier {
     });
   }
 
-  int _estimateTotalDays(Item item) {
-    switch (item.priceUnit) {
+  static int calculateUnits({
+    required DateTime startDate,
+    required DateTime endDate,
+    required PriceUnit priceUnit,
+  }) {
+    final start = DateTime(startDate.year, startDate.month, startDate.day);
+    final end = DateTime(endDate.year, endDate.month, endDate.day);
+    final diffDays = end.difference(start).inDays;
+    final days = diffDays < 0 ? 0 : diffDays + 1;
+
+    switch (priceUnit) {
       case PriceUnit.hour:
-        return 1;
+        final hours = end.difference(start).inHours;
+        return hours <= 0 ? 1 : hours;
       case PriceUnit.day:
-        return 7;
+        return days;
       case PriceUnit.week:
-        return 7;
+        return math.max(1, (days / 7).ceil());
       case PriceUnit.month:
-        return 30;
+        return math.max(1, (days / 30).ceil());
       case PriceUnit.job:
         return 1;
     }
@@ -148,6 +183,8 @@ class BookingsProvider extends ChangeNotifier {
   void dispose() {
     _borrowerSub?.cancel();
     _ownerSub?.cancel();
+    _borrowerEmailSub?.cancel();
+    _ownerEmailSub?.cancel();
     super.dispose();
   }
 }

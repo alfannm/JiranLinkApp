@@ -28,12 +28,20 @@ class ProfileScreen extends StatelessWidget {
 
     final myListings =
         itemsProvider.allItems.where((i) => i.owner.id == user.id).length;
-    final myRentals = bookingsProvider.bookings
-        .where((b) => b.owner.id == user.id)
-        .length;
-    final borrowed = bookingsProvider.bookings
-        .where((b) => b.borrower.id == user.id)
-        .length;
+    final myRentals = bookingsProvider.bookings.where((booking) {
+      final ownerIdMatch = booking.ownerId == user.id;
+      final ownerEmailMatch = user.email.isNotEmpty &&
+          booking.owner.email.isNotEmpty &&
+          booking.owner.email == user.email;
+      return ownerIdMatch || ownerEmailMatch;
+    }).length;
+    final borrowed = bookingsProvider.bookings.where((booking) {
+      final borrowerIdMatch = booking.borrowerId == user.id;
+      final borrowerEmailMatch = user.email.isNotEmpty &&
+          booking.borrower.email.isNotEmpty &&
+          booking.borrower.email == user.email;
+      return borrowerIdMatch || borrowerEmailMatch;
+    }).length;
 
     return Scaffold(
       appBar: AppBar(
