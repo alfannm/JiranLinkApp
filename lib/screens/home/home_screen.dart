@@ -15,20 +15,50 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
+class _HomeScreenState extends State<HomeScreen>
+    with WidgetsBindingObserver, SingleTickerProviderStateMixin {
+  late final ScrollController _quickLinksController;
+  late final AnimationController _quickLinksHintController;
+  bool _showQuickLinksHint = true;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _quickLinksController = ScrollController();
+    _quickLinksController.addListener(_handleQuickLinksScroll);
+    _quickLinksHintController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat(reverse: true);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<AuthProvider>().updateLocationDistrict(force: true);
+      if (!mounted) return;
+      if (_quickLinksController.hasClients &&
+          _quickLinksController.position.maxScrollExtent <= 0) {
+        setState(() {
+          _showQuickLinksHint = false;
+        });
+        _quickLinksHintController.stop();
+      }
     });
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _quickLinksController.dispose();
+    _quickLinksHintController.dispose();
     super.dispose();
+  }
+
+  void _handleQuickLinksScroll() {
+    if (!_showQuickLinksHint) return;
+    if (_quickLinksController.position.pixels <= 8) return;
+    setState(() {
+      _showQuickLinksHint = false;
+    });
+    _quickLinksHintController.stop();
   }
 
   @override
@@ -213,33 +243,99 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        _buildCategoryItem(
-                            context, Icons.inventory_2_outlined, 'All', null),
-                        const SizedBox(width: 16),
-                        _buildCategoryItem(context, Icons.construction_outlined,
-                            'Tools', ItemCategory.tools),
-                        const SizedBox(width: 16),
-                        _buildCategoryItem(context, Icons.devices_outlined,
-                            'Appliances', ItemCategory.appliances),
-                        const SizedBox(width: 16),
-                        _buildCategoryItem(context, Icons.lightbulb_outline,
-                            'Skills', ItemCategory.skills),
-                        const SizedBox(width: 16),
-                        _buildCategoryItem(
-                            context,
-                            Icons.business_center_outlined,
-                            'Services',
-                            ItemCategory.services),
-                        const SizedBox(width: 16),
-                        _buildCategoryItem(context, Icons.settings_outlined,
-                            'Others', ItemCategory.others),
-                      ],
-                    ),
+                  Stack(
+                    children: [
+                      SingleChildScrollView(
+                        controller: _quickLinksController,
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            _buildCategoryItem(context,
+                                Icons.inventory_2_outlined, 'All', null),
+                            const SizedBox(width: 16),
+                            _buildCategoryItem(context,
+                                Icons.construction_outlined, 'Tools', ItemCategory.tools),
+                            const SizedBox(width: 16),
+                            _buildCategoryItem(context, Icons.devices_outlined,
+                                'Appliances', ItemCategory.appliances),
+                            const SizedBox(width: 16),
+                            _buildCategoryItem(context, Icons.lightbulb_outline,
+                                'Skills', ItemCategory.skills),
+                            const SizedBox(width: 16),
+                            _buildCategoryItem(
+                                context,
+                                Icons.business_center_outlined,
+                                'Services',
+                                ItemCategory.services),
+                            const SizedBox(width: 16),
+                            _buildCategoryItem(context, Icons.settings_outlined,
+                                'Others', ItemCategory.others),
+                            const SizedBox(width: 12),
+                          ],
+                        ),
+                      ),
+                      Positioned(
+                        top: 0,
+                        bottom: 0,
+                        right: 0,
+                        child: IgnorePointer(
+                          child: AnimatedOpacity(
+                            opacity: _showQuickLinksHint ? 1 : 0,
+                            duration: const Duration(milliseconds: 250),
+                            child: Container(
+                              alignment: Alignment.centerRight,
+                              child: Container(
+                                margin: const EdgeInsets.only(right: 8),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF10B981),
+                                  borderRadius: BorderRadius.circular(999),
+                                  boxShadow: const [
+                                    BoxShadow(
+                                      color: Colors.black12,
+                                      blurRadius: 6,
+                                      offset: Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Text(
+                                      'Swipe',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    AnimatedBuilder(
+                                      animation: _quickLinksHintController,
+                                      builder: (context, child) {
+                                        final offset = 4 *
+                                            _quickLinksHintController.value;
+                                        return Transform.translate(
+                                          offset: Offset(offset, 0),
+                                          child: child,
+                                        );
+                                      },
+                                      child: const Icon(
+                                        Icons.chevron_right,
+                                        size: 16,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/bookings_provider.dart';
+import '../models/booking.dart';
 import '../theme/app_theme.dart';
 import '../providers/messages_provider.dart';
 import 'home/home_screen.dart';
@@ -48,8 +49,15 @@ class MainNavigationState extends State<MainNavigation> {
   @override
   Widget build(BuildContext context) {
     final unreadMessages = context.watch<MessagesProvider>().unreadCount;
-    final pendingRequests =
-        context.watch<BookingsProvider>().pendingRequestsCount;
+    final bookingsProvider = context.watch<BookingsProvider>();
+    final pendingRequests = bookingsProvider.pendingRequestsCount;
+    final pendingOwnerPayment = bookingsProvider.pendingOwnerPaymentCount > 0;
+    final hasBookingUpdates = bookingsProvider.myBookings.any((booking) {
+      final needsPayment = booking.status == BookingStatus.accepted &&
+          booking.paymentStatus == PaymentStatus.pending;
+      final needsReceive = booking.status == BookingStatus.pendingPickup;
+      return needsPayment || needsReceive;
+    });
 
     return Scaffold(
       body: IndexedStack(
@@ -137,7 +145,9 @@ class MainNavigationState extends State<MainNavigation> {
                 clipBehavior: Clip.none,
                 children: [
                   const Icon(Icons.person_outline),
-                  if (pendingRequests > 0)
+                  if (pendingRequests > 0 ||
+                      pendingOwnerPayment ||
+                      hasBookingUpdates)
                     Positioned(
                       right: -2,
                       top: -2,

@@ -34,11 +34,17 @@ class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
   String? _chatId;
   Stream<QuerySnapshot<Map<String, dynamic>>>? _messagesStream;
-  bool _sentInitial = false;
 
   @override
   void initState() {
     super.initState();
+    final preset = widget.initialMessage;
+    if (preset != null && preset.isNotEmpty) {
+      _messageController.text = preset;
+      _messageController.selection = TextSelection.fromPosition(
+        TextPosition(offset: preset.length),
+      );
+    }
   }
 
   @override
@@ -63,26 +69,6 @@ class _ChatScreenState extends State<ChatScreen> {
             itemId: widget.item?.id,
           );
       _messagesStream = messages.messageStream(_chatId!);
-    }
-
-    if (!_sentInitial && widget.initialMessage != null) {
-      _sentInitial = true;
-      messages.sendMessage(
-        chatId: _chatId,
-        otherUser: app.User(
-          id: widget.otherUserId,
-          name: widget.otherUserName,
-          email: '',
-          phone: '',
-          district: '',
-          avatar: widget.otherUserAvatar,
-          joinDate: DateTime.now(),
-          rating: 0,
-          reviewCount: 0,
-        ),
-        text: widget.initialMessage!,
-        item: widget.item,
-      );
     }
 
     if (_chatId != null) {

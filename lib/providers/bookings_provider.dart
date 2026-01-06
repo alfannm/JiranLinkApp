@@ -39,6 +39,17 @@ class BookingsProvider extends ChangeNotifier {
 
   int get pendingRequestsCount => incomingRequests.length;
 
+  int get pendingOwnerPaymentCount {
+    final user = _currentUser;
+    if (user == null) return 0;
+    return bookings
+        .where((b) =>
+            _matchesUser(b, user, isOwner: true) &&
+            b.status == BookingStatus.accepted &&
+            b.paymentStatus == PaymentStatus.pending)
+        .length;
+  }
+
   void setUser(app.User? user) {
     if (user?.id == _currentUser?.id) return;
     _currentUser = user;

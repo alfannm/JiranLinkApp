@@ -91,161 +91,177 @@ class RequestCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final dateFormat = DateFormat('MMM d, y');
     final statusColor = _getStatusColor(booking.status);
+    final needsAttention = booking.status == BookingStatus.pending ||
+        (booking.status == BookingStatus.accepted &&
+            booking.paymentStatus == PaymentStatus.pending);
 
     return Material(
       color: Colors.transparent,
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppTheme.border),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+        child: Stack(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppTheme.border),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CircleAvatar(
-                    backgroundImage: booking.borrower.avatar != null
-                        ? NetworkImage(booking.borrower.avatar!)
-                        : null,
-                    child: booking.borrower.avatar == null
-                        ? Text(booking.borrower.name[0])
-                        : null,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          booking.borrower.name,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        backgroundImage: booking.borrower.avatar != null
+                            ? NetworkImage(booking.borrower.avatar!)
+                            : null,
+                        child: booking.borrower.avatar == null
+                            ? Text(booking.borrower.name[0])
+                            : null,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              booking.borrower.name,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                            Text(
+                              'wants to rent ${booking.item.title}',
+                              style: const TextStyle(
+                                color: AppTheme.mutedForeground,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: statusColor.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          booking.statusLabel,
+                          style: TextStyle(
+                            color: statusColor,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
-                        Text(
-                          'wants to rent ${booking.item.title}',
-                          style: const TextStyle(
-                            color: AppTheme.mutedForeground,
-                            fontSize: 14,
-                          ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppTheme.background,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Dates',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppTheme.mutedForeground,
+                              ),
+                            ),
+                            Text(
+                              '${dateFormat.format(booking.startDate)} - ${dateFormat.format(booking.endDate)}',
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.w500),
+                            ),
+                          ],
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            const Text(
+                              'Earnings',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppTheme.mutedForeground,
+                              ),
+                            ),
+                            Text(
+                              'RM${booking.totalPrice}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.primary,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
                   ),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: statusColor.withOpacity(0.12),
-                      borderRadius: BorderRadius.circular(12),
+                  if ((booking.requestMessage ?? '').isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    _buildDetailRow(
+                      'Notes',
+                      booking.requestMessage!,
                     ),
-                    child: Text(
-                      booking.statusLabel,
-                      style: TextStyle(
-                        color: statusColor,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                      ),
+                  ],
+                  if ((booking.ownerResponseMessage ?? '').isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    _buildDetailRow(
+                        'Your Response', booking.ownerResponseMessage!),
+                  ],
+                  if (booking.status == BookingStatus.pending) ...[
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () {
+                              _handleDecision(context, accept: false);
+                            },
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppTheme.destructive,
+                              side:
+                                  const BorderSide(color: AppTheme.destructive),
+                            ),
+                            child: const Text('Decline'),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              _handleDecision(context, accept: true);
+                            },
+                            child: const Text('Accept'),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
+                  ],
                 ],
               ),
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppTheme.background,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Dates',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: AppTheme.mutedForeground,
-                          ),
-                        ),
-                        Text(
-                          '${dateFormat.format(booking.startDate)} - ${dateFormat.format(booking.endDate)}',
-                          style: const TextStyle(fontWeight: FontWeight.w500),
-                        ),
-                      ],
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        const Text(
-                          'Earnings',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: AppTheme.mutedForeground,
-                          ),
-                        ),
-                        Text(
-                          'RM${booking.totalPrice}',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: AppTheme.primary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+            ),
+            if (needsAttention)
+              const Positioned(
+                top: 10,
+                right: 10,
+                child: _AttentionDot(),
               ),
-              if ((booking.requestMessage ?? '').isNotEmpty) ...[
-                const SizedBox(height: 12),
-                _buildDetailRow(
-                  'Notes',
-                  booking.requestMessage!,
-                ),
-              ],
-              if ((booking.ownerResponseMessage ?? '').isNotEmpty) ...[
-                const SizedBox(height: 12),
-                _buildDetailRow('Your Response', booking.ownerResponseMessage!),
-              ],
-              if (booking.status == BookingStatus.pending) ...[
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () {
-                          _handleDecision(context, accept: false);
-                        },
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: AppTheme.destructive,
-                          side: const BorderSide(color: AppTheme.destructive),
-                        ),
-                        child: const Text('Decline'),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () {
-                          _handleDecision(context, accept: true);
-                        },
-                        child: const Text('Accept'),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ],
-          ),
+          ],
         ),
       ),
     );
@@ -327,7 +343,9 @@ class _RequestDecisionDialogState extends State<_RequestDecisionDialog> {
           controller: _controller,
           maxLines: 3,
           decoration: InputDecoration(
-            labelText: 'Message to borrower',
+            labelText:
+                widget.accept ? 'Add optional message...' : 'Message to borrower',
+            labelStyle: const TextStyle(color: AppTheme.mutedForeground),
             hintText:
                 widget.accept ? 'Optional message' : 'Please provide a reason',
           ),
@@ -354,6 +372,22 @@ class _RequestDecisionDialogState extends State<_RequestDecisionDialog> {
           child: const Text('Send'),
         ),
       ],
+    );
+  }
+}
+
+class _AttentionDot extends StatelessWidget {
+  const _AttentionDot();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 10,
+      height: 10,
+      decoration: const BoxDecoration(
+        color: AppTheme.destructive,
+        shape: BoxShape.circle,
+      ),
     );
   }
 }

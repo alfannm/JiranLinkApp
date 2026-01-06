@@ -145,7 +145,7 @@ class ItemsProvider extends ChangeNotifier {
   }
 
   List<Item> _filteredItems() {
-    var filtered = _items.where((item) => item.available).toList();
+    var filtered = List<Item>.from(_items);
 
     // Filter by search query
     if (_searchQuery.isNotEmpty) {

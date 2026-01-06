@@ -25,6 +25,9 @@ class RequestDetailsScreen extends StatelessWidget {
             (currentUser.email.isNotEmpty &&
                 booking.owner.email.isNotEmpty &&
                 booking.owner.email == currentUser.email));
+    final isPaymentPending = isOwner &&
+        booking.status == BookingStatus.accepted &&
+        booking.paymentStatus == PaymentStatus.pending;
     final canConfirmReturned =
         booking.status == BookingStatus.active && isOwner;
 
@@ -41,6 +44,10 @@ class RequestDetailsScreen extends StatelessWidget {
             _buildItemCard(),
             const SizedBox(height: 16),
             _buildStatusChip(statusColor),
+            if (isPaymentPending) ...[
+              const SizedBox(height: 12),
+              _buildPaymentPendingCard(),
+            ],
             const SizedBox(height: 16),
             const Text(
               'Borrower',
@@ -257,6 +264,46 @@ class RequestDetailsScreen extends StatelessWidget {
           fontWeight: FontWeight.w600,
           fontSize: 12,
         ),
+      ),
+    );
+  }
+
+  Widget _buildPaymentPendingCard() {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppTheme.primary.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.border),
+      ),
+      child: const Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.schedule, color: AppTheme.primary),
+          SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Payment pending',
+                  style: TextStyle(
+                    color: AppTheme.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  'Waiting for borrower to complete payment. You will be notified once it is confirmed.',
+                  style: TextStyle(
+                    color: AppTheme.mutedForeground,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

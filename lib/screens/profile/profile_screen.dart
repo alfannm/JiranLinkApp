@@ -52,6 +52,14 @@ class ProfileScreen extends StatelessWidget {
       return (borrowerIdMatch || borrowerEmailMatch) &&
           isSuccessful(booking.status);
     }).length;
+    final hasIncomingRequests = bookingsProvider.pendingRequestsCount > 0 ||
+        bookingsProvider.pendingOwnerPaymentCount > 0;
+    final hasBookingUpdates = bookingsProvider.myBookings.any((booking) {
+      final needsPayment = booking.status == BookingStatus.accepted &&
+          booking.paymentStatus == PaymentStatus.pending;
+      final needsReceive = booking.status == BookingStatus.pendingPickup;
+      return needsPayment || needsReceive;
+    });
 
     return Scaffold(
       appBar: AppBar(
@@ -189,6 +197,7 @@ class ProfileScreen extends StatelessWidget {
               context,
               icon: Icons.inventory_2_outlined,
               title: 'My Bookings',
+              trailing: _buildMenuTrailing(showDot: hasBookingUpdates),
               onTap: () {
                 Navigator.push(
                   context,
@@ -202,6 +211,7 @@ class ProfileScreen extends StatelessWidget {
               context,
               icon: Icons.notifications_none_outlined,
               title: 'Incoming Requests',
+              trailing: _buildMenuTrailing(showDot: hasIncomingRequests),
               onTap: () {
                 Navigator.push(
                   context,
@@ -388,6 +398,26 @@ class ProfileScreen extends StatelessWidget {
           const Icon(Icons.chevron_right,
               color: AppTheme.mutedForeground, size: 20),
       onTap: onTap,
+    );
+  }
+
+  Widget _buildMenuTrailing({required bool showDot}) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (showDot)
+          Container(
+            width: 8,
+            height: 8,
+            margin: const EdgeInsets.only(right: 8),
+            decoration: const BoxDecoration(
+              color: AppTheme.destructive,
+              shape: BoxShape.circle,
+            ),
+          ),
+        const Icon(Icons.chevron_right,
+            color: AppTheme.mutedForeground, size: 20),
+      ],
     );
   }
 }

@@ -7,6 +7,7 @@ import '../../models/booking.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/bookings_provider.dart';
 import '../../theme/app_theme.dart';
+import 'payment_screen.dart';
 
 class BookingDetailsScreen extends StatelessWidget {
   final Booking booking;
@@ -156,20 +157,18 @@ class BookingDetailsScreen extends StatelessWidget {
           ? buildActionSheet(
               label: 'Proceed to Payment',
               onPressed: () async {
-                try {
-                  await context
-                      .read<BookingsProvider>()
-                      .markPaymentReceived(booking);
-                  if (!context.mounted) return;
+                final paid = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => PaymentScreen(booking: booking),
+                  ),
+                );
+                if (!context.mounted) return;
+                if (paid == true) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Payment completed.')),
                   );
                   Navigator.of(context).pop(true);
-                } catch (e) {
-                  if (!context.mounted) return;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Payment failed: $e')),
-                  );
                 }
               },
             )

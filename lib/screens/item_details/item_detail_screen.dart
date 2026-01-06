@@ -98,6 +98,12 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
     final expectedAvailableDate = item.expectedAvailableDate;
     final showExpectedAvailable =
         !item.available && expectedAvailableDate != null;
+    final availabilityNote = showExpectedAvailable
+        ? 'Expected back on ${dateFormat.format(expectedAvailableDate)}.'
+        : 'Message the owner to reserve it for later.';
+    final reserveMessage = showExpectedAvailable
+        ? 'Hi ${owner.name}, I am interested in "${item.title}". I saw it is unavailable right now. If it is expected back on ${dateFormat.format(expectedAvailableDate)}, could you reserve it for me? Thanks!'
+        : 'Hi ${owner.name}, I am interested in "${item.title}". It is unavailable right now. Could you reserve it for me when it is available? Thanks!';
 
     return Scaffold(
       body: SafeArea(
@@ -700,60 +706,95 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                     ),
                   ],
                 )
-              : Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          side: const BorderSide(color: AppTheme.primary),
-                        ),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ChatScreen(
-                                otherUserId: owner.id,
-                                otherUserName: owner.name,
-                                otherUserAvatar: owner.avatar,
-                                item: item,
-                              ),
+              : item.available
+                  ? Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              side: const BorderSide(color: AppTheme.primary),
                             ),
-                          );
-                        },
-                        child: const Text('Chat'),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ChatScreen(
+                                    otherUserId: owner.id,
+                                    otherUserName: owner.name,
+                                    otherUserAvatar: owner.avatar,
+                                    item: item,
+                                  ),
+                                ),
+                              );
+                            },
+                            child: const Text('Chat'),
+                          ),
                         ),
-                        onPressed: () async {
-                          if (currentUser == null) return;
-                          final sent = await Navigator.push<bool>(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => BookingRequestScreen(
-                                item: item,
-                                borrower: currentUser,
-                              ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
                             ),
-                          );
-                          if (!mounted) return;
-                          if (sent == true) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content: Text('Request sent to owner.')),
-                            );
-                          }
-                        },
-                        child: Text(_actionLabel(item.type)),
-                      ),
+                            onPressed: () async {
+                              if (currentUser == null) return;
+                              final sent = await Navigator.push<bool>(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => BookingRequestScreen(
+                                    item: item,
+                                    borrower: currentUser,
+                                  ),
+                                ),
+                              );
+                              if (!mounted) return;
+                              if (sent == true) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content: Text('Request sent to owner.')),
+                                );
+                              }
+                            },
+                            child: Text(_actionLabel(item.type)),
+                          ),
+                        ),
+                      ],
+                    )
+                  : Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Currently unavailable. $availabilityNote',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: AppTheme.mutedForeground,
+                            fontSize: 12,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ChatScreen(
+                                    otherUserId: owner.id,
+                                    otherUserName: owner.name,
+                                    otherUserAvatar: owner.avatar,
+                                    item: item,
+                                    initialMessage: reserveMessage,
+                                  ),
+                                ),
+                              );
+                            },
+                            child: const Text('Chat to Reserve'),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
         ),
       ),
     );
