@@ -4,7 +4,7 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <application
-        android:label="jiranlink_app"
+        android:label="JiranLink"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
 
