@@ -173,35 +173,3 @@ extension BookingDisplay on Booking {
   String get returnActionLabel =>
       isServiceBooking ? 'Service Completed' : 'Item Returned';
 }
-
-class Message {
-  final String id;
-  final User from;
-  final User to;
-  final Item? item;
-  final String lastMessage;
-  final DateTime timestamp;
-  final bool unread;
-
-  Message({
-    required this.id,
-    required this.from,
-    required this.to,
-    this.item,
-    required this.lastMessage,
-    required this.timestamp,
-    required this.unread,
-  });
-
-  factory Message.fromJson(Map<String, dynamic> json) {
-    return Message(
-      id: json['id'],
-      from: User.fromJson(json['from']),
-      to: User.fromJson(json['to']),
-      item: json['item'] != null ? Item.fromJson(json['item']) : null,
-      lastMessage: json['lastMessage'],
-      timestamp: DateTime.parse(json['timestamp']),
-      unread: json['unread'],
-    );
-  }
-}

@@ -36,8 +36,6 @@ class Item {
   final ItemCondition? condition;
   final DateTime postedDate;
   final int views;
-  final double? rating;
-  final int? reviewCount;
 
   Item({
     required this.id,
@@ -61,8 +59,6 @@ class Item {
     this.condition,
     required this.postedDate,
     required this.views,
-    this.rating,
-    this.reviewCount,
   });
 
   factory Item.fromJson(Map<String, dynamic> json) {
@@ -114,8 +110,6 @@ class Item {
           : null,
       postedDate: postedDate,
       views: (json['views'] as num?)?.toInt() ?? 0,
-      rating: (json['rating'] as num?)?.toDouble(),
-      reviewCount: (json['reviewCount'] as num?)?.toInt(),
     );
   }
 
@@ -158,8 +152,6 @@ class Item {
       postedDate:
           (data['postedDate'] as Timestamp?)?.toDate() ?? DateTime.now(),
       views: (data['views'] as num?)?.toInt() ?? 0,
-      rating: (data['rating'] as num?)?.toDouble(),
-      reviewCount: (data['reviewCount'] as num?)?.toInt(),
     );
   }
 
@@ -185,8 +177,6 @@ class Item {
       'condition': condition?.toString().split('.').last,
       'postedDate': postedDate,
       'views': views,
-      'rating': rating,
-      'reviewCount': reviewCount,
     };
   }
 

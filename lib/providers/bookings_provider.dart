@@ -15,8 +15,6 @@ class BookingsProvider extends ChangeNotifier {
   final Map<String, Booking> _bookingMap = {};
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _borrowerSub;
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _ownerSub;
-  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _borrowerEmailSub;
-  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _ownerEmailSub;
 
   List<Booking> get bookings =>
       _bookingMap.values.toList()..sort((a, b) => b.createdAt.compareTo(a.createdAt));
@@ -56,12 +54,8 @@ class BookingsProvider extends ChangeNotifier {
     _bookingMap.clear();
     _borrowerSub?.cancel();
     _ownerSub?.cancel();
-    _borrowerEmailSub?.cancel();
-    _ownerEmailSub?.cancel();
     _borrowerSub = null;
     _ownerSub = null;
-    _borrowerEmailSub = null;
-    _ownerEmailSub = null;
 
     if (_currentUser == null) {
       notifyListeners();
@@ -179,18 +173,6 @@ class BookingsProvider extends ChangeNotifier {
     });
   }
 
-  Future<void> completeBooking(String bookingId) async {
-    await _db.collection('bookings').doc(bookingId).update({
-      'status': BookingStatus.completed.toString().split('.').last,
-    });
-  }
-
-  Future<void> cancelBooking(String bookingId) async {
-    await _db.collection('bookings').doc(bookingId).update({
-      'status': BookingStatus.cancelled.toString().split('.').last,
-    });
-  }
-
   static int calculateUnits({
     required DateTime startDate,
     required DateTime endDate,
@@ -220,8 +202,6 @@ class BookingsProvider extends ChangeNotifier {
   void dispose() {
     _borrowerSub?.cancel();
     _ownerSub?.cancel();
-    _borrowerEmailSub?.cancel();
-    _ownerEmailSub?.cancel();
     super.dispose();
   }
 }

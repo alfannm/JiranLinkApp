@@ -469,8 +469,6 @@ class _PostItemScreenState extends State<PostItemScreen> {
         condition: isServiceCategory ? null : _selectedCondition,
         postedDate: existingItem?.postedDate ?? DateTime.now(),
         views: existingItem?.views ?? 0,
-        rating: existingItem?.rating,
-        reviewCount: existingItem?.reviewCount ?? 0,
       );
 
       if (_isEditing) {

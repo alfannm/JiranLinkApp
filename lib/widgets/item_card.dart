@@ -177,56 +177,33 @@ class ItemCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 6),
 
-                    // Price/Deposit & Rating Row
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    // Price/Deposit
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Flexible(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                item.type == ItemType.borrow
-                                    ? 'Borrow'
-                                    : item.getPriceLabel(),
-                                style: const TextStyle(
-                                  color: AppTheme.primary,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              if (item.deposit != null)
-                                Text(
-                                  'Deposit RM${item.deposit!.toStringAsFixed(0)}',
-                                  style: const TextStyle(
-                                    color: AppTheme.mutedForeground,
-                                    fontSize: 10,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                            ],
+                        Text(
+                          item.type == ItemType.borrow
+                              ? 'Borrow'
+                              : item.getPriceLabel(),
+                          style: const TextStyle(
+                            color: AppTheme.primary,
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        Row(
-                          children: [
-                            const Icon(Icons.star, size: 14, color: Colors.amber),
-                            const SizedBox(width: 2),
-                            Text(
-                              item.rating != null
-                                  ? item.rating!.toStringAsFixed(1)
-                                  : 'New',
-                              style: const TextStyle(
-                                color: AppTheme.foreground,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w500,
-                              ),
+                        if (item.deposit != null)
+                          Text(
+                            'Deposit RM${item.deposit!.toStringAsFixed(0)}',
+                            style: const TextStyle(
+                              color: AppTheme.mutedForeground,
+                              fontSize: 10,
                             ),
-                          ],
-                        ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                       ],
                     ),
                   ],

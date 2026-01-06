@@ -67,16 +67,6 @@ class LocationService {
             '').trim();
   }
 
-  /// Returns the full Placemark object for the current location.
-  Future<Placemark?> getCurrentPlacemark() async {
-    try {
-      final position = await getCurrentPosition();
-      return getPlacemarkFromPosition(position);
-    } catch (e) {
-      return null;
-    }
-  }
-
   Future<Placemark?> getPlacemarkFromPosition(Position position) async {
     try {
       final placemarks = await placemarkFromCoordinates(

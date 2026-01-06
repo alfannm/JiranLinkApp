@@ -315,50 +315,26 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                       ],
                     ),
                     const SizedBox(height: 8),
-                    Row(
+                    Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              if (!isBorrow)
-                                Text(
-                                  item.getPriceLabel(),
-                                  style: const TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppTheme.primary,
-                                  ),
-                                ),
-                              if (item.deposit != null)
-                                Text(
-                                  'Deposit: RM${item.deposit!.toInt()}',
-                                  style: const TextStyle(
-                                    color: AppTheme.mutedForeground,
-                                    fontSize: 13,
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                        Row(
-                          children: [
-                            const Icon(Icons.star,
-                                color: Colors.amber, size: 18),
-                            const SizedBox(width: 4),
-                            Text(
-                              item.rating != null
-                                  ? '${item.rating!.toStringAsFixed(1)} (${item.reviewCount} reviews)'
-                                  : 'New',
-                              style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                                color: AppTheme.foreground,
-                              ),
+                        if (!isBorrow)
+                          Text(
+                            item.getPriceLabel(),
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.primary,
                             ),
-                          ],
-                        ),
+                          ),
+                        if (item.deposit != null)
+                          Text(
+                            'Deposit: RM${item.deposit!.toInt()}',
+                            style: const TextStyle(
+                              color: AppTheme.mutedForeground,
+                              fontSize: 13,
+                            ),
+                          ),
                       ],
                     ),
                     const SizedBox(height: 12),
@@ -497,20 +473,6 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
                                   ),
-                                ),
-                                Row(
-                                  children: [
-                                    const Icon(Icons.star,
-                                        size: 14, color: Colors.amber),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      '${owner.rating} (${owner.reviewCount} reviews)',
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: AppTheme.mutedForeground,
-                                      ),
-                                    ),
-                                  ],
                                 ),
                                 const SizedBox(height: 6),
                                 Row(

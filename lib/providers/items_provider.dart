@@ -35,7 +35,6 @@ class ItemsProvider extends ChangeNotifier {
 
   List<Item> get items => _filteredItems();
   List<Item> get allItems => _items;
-  List<Item> get selectedCategoryItems => _items; // Placeholder if needed
   ItemCategory? get selectedCategory => _selectedCategory;
   String get searchQuery => _searchQuery;
   double? get userLatitude => _userLatitude;
@@ -63,12 +62,6 @@ class ItemsProvider extends ChangeNotifier {
 
   void setCategory(ItemCategory? category) {
     _selectedCategory = category;
-    notifyListeners();
-  }
-
-  void setUserLocation(double latitude, double longitude) {
-    _userLatitude = latitude;
-    _userLongitude = longitude;
     notifyListeners();
   }
 
@@ -185,14 +178,6 @@ class ItemsProvider extends ChangeNotifier {
         cos((lat2 - lat1) * p) / 2 +
         cos(lat1 * p) * cos(lat2 * p) * (1 - cos((lon2 - lon1) * p)) / 2;
     return 12742 * asin(sqrt(a)); // 2 * R; R = 6371 km
-  }
-
-  String formatDistance(double km) {
-    if (km < 1) {
-      return '${(km * 1000).toInt()}m away';
-    } else {
-      return '${km.toStringAsFixed(1)}km away';
-    }
   }
 
   List<Item> getNearbyItems(String district, int limit) {

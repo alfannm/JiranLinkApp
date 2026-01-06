@@ -8,8 +8,6 @@ class User {
   final String district;
   final String? avatar;
   final DateTime joinDate;
-  final double rating;
-  final int reviewCount;
 
   User({
     required this.id,
@@ -19,8 +17,6 @@ class User {
     required this.district,
     this.avatar,
     required this.joinDate,
-    required this.rating,
-    required this.reviewCount,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -44,8 +40,6 @@ class User {
       district: json['district'] ?? 'Unknown',
       avatar: json['avatar'],
       joinDate: joinDate,
-      rating: (json['rating'] as num?)?.toDouble() ?? 0,
-      reviewCount: (json['reviewCount'] as num?)?.toInt() ?? 0,
     );
   }
 
@@ -59,8 +53,6 @@ class User {
       district: data['district'] ?? 'Unknown',
       avatar: data['avatar'],
       joinDate: (data['joinDate'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      rating: (data['rating'] as num?)?.toDouble() ?? 0,
-      reviewCount: (data['reviewCount'] as num?)?.toInt() ?? 0,
     );
   }
 
@@ -73,8 +65,6 @@ class User {
       'district': district,
       'avatar': avatar,
       'joinDate': joinDate,
-      'rating': rating,
-      'reviewCount': reviewCount,
     };
   }
 }

@@ -101,8 +101,6 @@ class _ChatScreenState extends State<ChatScreen> {
           district: '',
           avatar: widget.otherUserAvatar,
           joinDate: DateTime.now(),
-          rating: 0,
-          reviewCount: 0,
         ),
         text: text,
         item: widget.item,

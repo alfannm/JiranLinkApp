@@ -4,14 +4,12 @@ import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/user.dart' as app;
 import '../services/location_service.dart';
 
 /// Real authentication provider (FirebaseAuth + GoogleSignIn).
 ///
-/// - Persists onboarding completion to SharedPreferences.
 /// - Keeps [_currentUser] in sync with FirebaseAuth authStateChanges.
 ///
 /// IMPORTANT:
@@ -19,16 +17,11 @@ import '../services/location_service.dart';
 /// - Android: android/app/google-services.json + apply google-services plugin
 /// - iOS: ios/Runner/GoogleService-Info.plist
 class AuthProvider extends ChangeNotifier {
-  static const _prefsOnboardingKey = 'hasCompletedOnboarding';
-  static const _prefsOnboardingVersionKey = 'onboardingVersion';
-  static const _onboardingVersion = 1;
-
   final fb.FirebaseAuth _auth = fb.FirebaseAuth.instance;
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
   final LocationService _locationService = LocationService();
 
-  bool _hasCompletedOnboarding = false;
   bool _isInitializing = true;
   bool _isUpdatingLocation = false;
   DateTime? _lastLocationCheck;
@@ -37,7 +30,6 @@ class AuthProvider extends ChangeNotifier {
   app.User? _currentUser;
   StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _userSub;
 
-  bool get hasCompletedOnboarding => _hasCompletedOnboarding;
   bool get isInitializing => _isInitializing;
   bool get isAuthenticated => _currentUser != null;
   bool get isUpdatingLocation => _isUpdatingLocation;
@@ -53,13 +45,6 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<void> _init() async {
-    // Load onboarding state
-    final prefs = await SharedPreferences.getInstance();
-    final storedVersion = prefs.getInt(_prefsOnboardingVersionKey);
-    final isCurrentVersion = storedVersion == _onboardingVersion;
-    _hasCompletedOnboarding =
-        (prefs.getBool(_prefsOnboardingKey) ?? false) && isCurrentVersion;
-
     final existingUser = _auth.currentUser;
     if (existingUser != null) {
       await _ensureUserDoc(existingUser);
@@ -108,8 +93,6 @@ class AuthProvider extends ChangeNotifier {
           district: district,
           avatar: user.avatar,
           joinDate: user.joinDate,
-          rating: user.rating,
-          reviewCount: user.reviewCount,
         );
       }
       notifyListeners();
@@ -127,14 +110,6 @@ class AuthProvider extends ChangeNotifier {
       _isUpdatingLocation = false;
       notifyListeners();
     }
-  }
-
-  Future<void> completeOnboarding() async {
-    _hasCompletedOnboarding = true;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_prefsOnboardingKey, true);
-    await prefs.setInt(_prefsOnboardingVersionKey, _onboardingVersion);
-    notifyListeners();
   }
 
   /// Google sign-in using FirebaseAuth.
@@ -217,8 +192,6 @@ class AuthProvider extends ChangeNotifier {
       district: 'Unknown',
       avatar: user.photoURL,
       joinDate: DateTime.now(),
-      rating: 0,
-      reviewCount: 0,
     );
 
     await docRef.set(newUser.toJson());
