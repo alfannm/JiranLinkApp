@@ -5,6 +5,7 @@ import '../../providers/favorites_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/item_card.dart';
 import '../../models/item.dart';
+import '../../theme/app_theme.dart';
 import '../item_details/item_detail_screen.dart';
 import '../main_navigation.dart';
 
@@ -97,7 +98,7 @@ class _HomeScreenState extends State<HomeScreen>
           // Custom Green Header
           SliverToBoxAdapter(
             child: Container(
-              color: const Color(0xFF10B981), // Primary Green
+              color: AppTheme.primary, // Primary Green
               padding: const EdgeInsets.fromLTRB(24, 60, 24, 24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -290,7 +291,7 @@ class _HomeScreenState extends State<HomeScreen>
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 10, vertical: 6),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF10B981),
+                                  color: AppTheme.primary,
                                   borderRadius: BorderRadius.circular(999),
                                   boxShadow: const [
                                     BoxShadow(
@@ -480,9 +481,11 @@ class _HomeScreenState extends State<HomeScreen>
               margin: const EdgeInsets.fromLTRB(16, 32, 16, 40),
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: const Color(0xFFECFDF5), // Light green background
+                color: AppTheme.primary.withOpacity(0.08),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFA7F3D0)),
+                border: Border.all(
+                  color: AppTheme.primary.withOpacity(0.25),
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -492,7 +495,7 @@ class _HomeScreenState extends State<HomeScreen>
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF065F46),
+                      color: AppTheme.primary,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -545,7 +548,7 @@ class _HomeScreenState extends State<HomeScreen>
             ),
             child: Icon(
               icon,
-              color: const Color(0xFF10B981),
+              color: AppTheme.primary,
               size: 24,
             ),
           ),
@@ -566,14 +569,14 @@ class _HomeScreenState extends State<HomeScreen>
   Widget _buildTrustBadge(String text) {
     return Row(
       children: [
-        const Icon(Icons.check, size: 12, color: Color(0xFF059669)),
+        const Icon(Icons.check, size: 12, color: AppTheme.primary),
         const SizedBox(width: 4),
         Text(
           text,
           style: const TextStyle(
             fontSize: 10,
             fontWeight: FontWeight.w600,
-            color: Color(0xFF059669),
+            color: AppTheme.primary,
           ),
         ),
       ],

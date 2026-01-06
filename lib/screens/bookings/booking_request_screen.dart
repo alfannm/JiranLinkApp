@@ -189,7 +189,6 @@ class _BookingRequestScreenState extends State<BookingRequestScreen> {
       return Scaffold(
         appBar: AppBar(
           title: const Text('Booking Details'),
-          backgroundColor: AppTheme.cardBackground,
         ),
         body: Center(
           child: Padding(
@@ -224,7 +223,6 @@ class _BookingRequestScreenState extends State<BookingRequestScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Booking Details'),
-        backgroundColor: AppTheme.cardBackground,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),

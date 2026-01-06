@@ -16,7 +16,6 @@ class BookingsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Bookings'),
-        backgroundColor: AppTheme.cardBackground,
       ),
       body: bookings.isEmpty
           ? const Center(child: Text('No bookings found'))

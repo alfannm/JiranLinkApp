@@ -69,7 +69,6 @@ class BookingDetailsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Booking Details'),
-        backgroundColor: AppTheme.cardBackground,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),

@@ -34,7 +34,6 @@ class RequestDetailsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Request Details'),
-        backgroundColor: AppTheme.cardBackground,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),

@@ -89,7 +89,7 @@ class ItemCard extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF10B981),
+                      color: AppTheme.primary,
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
@@ -189,7 +189,7 @@ class ItemCard extends StatelessWidget {
                                     ? 'Borrow'
                                     : item.getPriceLabel(),
                                 style: const TextStyle(
-                                  color: Color(0xFF10B981),
+                                  color: AppTheme.primary,
                                   fontSize: 13,
                                   fontWeight: FontWeight.bold,
                                 ),

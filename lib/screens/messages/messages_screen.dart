@@ -16,7 +16,6 @@ class MessagesScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Messages'),
-        backgroundColor: AppTheme.cardBackground,
       ),
       body: threads.isEmpty
           ? const Center(

@@ -151,7 +151,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     Text(
                       itemTitle,
                       style: const TextStyle(
-                        color: AppTheme.primary,
+                        color: Colors.white70,
                         fontSize: 12,
                       ),
                       maxLines: 1,
@@ -175,7 +175,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         return Text(
                           title,
                           style: const TextStyle(
-                            color: AppTheme.primary,
+                            color: Colors.white70,
                             fontSize: 12,
                           ),
                           maxLines: 1,
@@ -188,7 +188,6 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ],
         ),
-        backgroundColor: AppTheme.cardBackground,
       ),
       body: isSelfChat
           ? Center(

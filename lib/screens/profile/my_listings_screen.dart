@@ -24,7 +24,6 @@ class MyListingsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Listings'),
-        backgroundColor: AppTheme.cardBackground,
         actions: [
           IconButton(
             icon: const Icon(Icons.add),

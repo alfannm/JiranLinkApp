@@ -37,7 +37,6 @@ class IncomingRequestsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Incoming Requests'),
-        backgroundColor: AppTheme.cardBackground,
       ),
       body: requests.isEmpty
           ? const Center(child: Text('No requests yet'))

@@ -549,7 +549,6 @@ class _PostItemScreenState extends State<PostItemScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(_isEditing ? 'Edit Item' : 'Post Item'),
-        backgroundColor: AppTheme.cardBackground,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
