@@ -23,15 +23,15 @@ class ItemCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.withOpacity(0.2)),
-          boxShadow: [
+          color: AppTheme.cardBackground,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppTheme.border),
+          boxShadow: const [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 5,
-              offset: const Offset(0, 2),
-            )
+              color: AppTheme.shadow,
+              blurRadius: 10,
+              offset: Offset(0, 4),
+            ),
           ],
         ),
         child: Column(
@@ -41,7 +41,7 @@ class ItemCard extends StatelessWidget {
             Stack(
               children: [
                 ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
                   child: AspectRatio(
                     aspectRatio: 4 / 3, // Keeps image nice and standard
                     child: CachedNetworkImage(
@@ -50,12 +50,13 @@ class ItemCard extends StatelessWidget {
                           : 'https://placehold.co/400x300/png', // Fallback image
                       fit: BoxFit.cover,
                       placeholder: (context, url) => Container(
-                        color: Colors.grey[200],
+                        color: AppTheme.muted,
                         child: const Center(child: CircularProgressIndicator()),
                       ),
                       errorWidget: (context, url, error) => Container(
-                        color: Colors.grey[200],
-                        child: const Icon(Icons.broken_image, color: Colors.grey),
+                        color: AppTheme.muted,
+                        child: const Icon(Icons.broken_image,
+                            color: AppTheme.mutedForeground),
                       ),
                     ),
                   ),
@@ -70,13 +71,13 @@ class ItemCard extends StatelessWidget {
                       width: 32,
                       height: 32,
                       decoration: const BoxDecoration(
-                        color: Colors.white,
+                        color: AppTheme.cardBackground,
                         shape: BoxShape.circle,
-                        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)],
+                        boxShadow: [BoxShadow(color: AppTheme.shadow, blurRadius: 4)],
                       ),
                       child: Icon(
                         isFavorite ? Icons.favorite : Icons.favorite_border,
-                        color: isFavorite ? Colors.red : Colors.grey[600],
+                        color: isFavorite ? Colors.red : AppTheme.mutedForeground,
                         size: 18,
                       ),
                     ),
@@ -145,7 +146,7 @@ class ItemCard extends StatelessWidget {
                     Text(
                       item.title,
                       style: const TextStyle(
-                        color: Color(0xFF1F2937),
+                        color: AppTheme.foreground,
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                         height: 1.2,
@@ -158,13 +159,14 @@ class ItemCard extends StatelessWidget {
                     // Location Row
                     Row(
                       children: [
-                        const Icon(Icons.location_on, size: 12, color: Color(0xFF9CA3AF)),
+                        const Icon(Icons.location_on,
+                            size: 12, color: AppTheme.mutedForeground),
                         const SizedBox(width: 2),
                         Expanded( // Prevents text from pushing off screen
                           child: Text(
                             item.district,
                             style: const TextStyle(
-                              color: Color(0xFF9CA3AF),
+                              color: AppTheme.mutedForeground,
                               fontSize: 11,
                             ),
                             maxLines: 1,
@@ -200,7 +202,7 @@ class ItemCard extends StatelessWidget {
                                 Text(
                                   'Deposit RM${item.deposit!.toStringAsFixed(0)}',
                                   style: const TextStyle(
-                                    color: Color(0xFF9CA3AF),
+                                    color: AppTheme.mutedForeground,
                                     fontSize: 10,
                                   ),
                                   maxLines: 1,
@@ -218,7 +220,7 @@ class ItemCard extends StatelessWidget {
                                   ? item.rating!.toStringAsFixed(1)
                                   : 'New',
                               style: const TextStyle(
-                                color: Color(0xFF374151),
+                                color: AppTheme.foreground,
                                 fontSize: 11,
                                 fontWeight: FontWeight.w500,
                               ),

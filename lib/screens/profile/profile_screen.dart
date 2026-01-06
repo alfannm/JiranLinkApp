@@ -60,7 +60,6 @@ class ProfileScreen extends StatelessWidget {
       final needsReceive = booking.status == BookingStatus.pendingPickup;
       return needsPayment || needsReceive;
     });
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profile', style: TextStyle(color: Colors.white)),
@@ -84,8 +83,16 @@ class ProfileScreen extends StatelessWidget {
           children: [
             // Profile Header
             Container(
-              padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
-              color: AppTheme.primary,
+              padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [AppTheme.primary, AppTheme.primaryDark],
+                ),
+                borderRadius: BorderRadius.vertical(bottom: Radius.circular(28)),
+              ),
+              clipBehavior: Clip.hardEdge,
               child: Column(
                 children: [
                   CircleAvatar(

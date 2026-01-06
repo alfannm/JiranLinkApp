@@ -467,7 +467,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: AppTheme.cardBackground,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: AppTheme.border),
                       ),
@@ -625,10 +625,10 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
       bottomSheet: Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppTheme.cardBackground,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: AppTheme.shadow,
               blurRadius: 10,
               offset: const Offset(0, -5),
             ),

@@ -66,9 +66,17 @@ class MainNavigationState extends State<MainNavigation> {
       ),
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
+          color: AppTheme.cardBackground,
           border: Border(
             top: BorderSide(color: AppTheme.border, width: 1),
           ),
+          boxShadow: [
+            BoxShadow(
+              color: AppTheme.shadow,
+              blurRadius: 16,
+              offset: Offset(0, -6),
+            ),
+          ],
         ),
         child: BottomNavigationBar(
           currentIndex: _currentIndex,
@@ -84,7 +92,7 @@ class MainNavigationState extends State<MainNavigation> {
               });
             }
           },
-          backgroundColor: Colors.white,
+          backgroundColor: Colors.transparent,
           selectedItemColor: AppTheme.primary,
           unselectedItemColor: AppTheme.mutedForeground,
           type: BottomNavigationBarType.fixed,

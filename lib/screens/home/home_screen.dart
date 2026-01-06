@@ -92,14 +92,18 @@ class _HomeScreenState extends State<HomeScreen>
     final featuredItems = itemsProvider.getFeaturedItems(6);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.background,
       body: CustomScrollView(
         slivers: [
           // Custom Green Header
           SliverToBoxAdapter(
             child: Container(
-              color: AppTheme.primary, // Primary Green
               padding: const EdgeInsets.fromLTRB(24, 60, 24, 24),
+              decoration: const BoxDecoration(
+                gradient: AppTheme.primaryGradient,
+                borderRadius: BorderRadius.vertical(bottom: Radius.circular(28)),
+              ),
+              clipBehavior: Clip.hardEdge,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -199,16 +203,26 @@ class _HomeScreenState extends State<HomeScreen>
                   // Search Bar
                   Container(
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
+                      color: AppTheme.cardBackground,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppTheme.border),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: AppTheme.shadow,
+                          blurRadius: 12,
+                          offset: Offset(0, 4),
+                        ),
+                      ],
                     ),
                     child: TextField(
                       decoration: const InputDecoration(
                         hintText: 'Search for items or services...',
-                        hintStyle:
-                            TextStyle(color: Color(0xFF9CA3AF), fontSize: 14),
+                        hintStyle: TextStyle(
+                          color: AppTheme.mutedForeground,
+                          fontSize: 14,
+                        ),
                         prefixIcon: Icon(Icons.search,
-                            color: Color(0xFF9CA3AF), size: 20),
+                            color: AppTheme.mutedForeground, size: 20),
                         border: InputBorder.none,
                         contentPadding:
                             EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -240,7 +254,7 @@ class _HomeScreenState extends State<HomeScreen>
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF1F2937),
+                      color: AppTheme.foreground,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -286,50 +300,50 @@ class _HomeScreenState extends State<HomeScreen>
                             duration: const Duration(milliseconds: 250),
                             child: Container(
                               alignment: Alignment.centerRight,
-                              child: Container(
-                                margin: const EdgeInsets.only(right: 8),
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 6),
-                                decoration: BoxDecoration(
-                                  color: AppTheme.primary,
-                                  borderRadius: BorderRadius.circular(999),
-                                  boxShadow: const [
-                                    BoxShadow(
-                                      color: Colors.black12,
-                                      blurRadius: 6,
-                                      offset: Offset(0, 2),
-                                    ),
-                                  ],
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Text(
-                                      'Swipe',
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w600,
+                              child: AnimatedBuilder(
+                                animation: _quickLinksHintController,
+                                builder: (context, child) {
+                                  final offset =
+                                      6 * _quickLinksHintController.value;
+                                  return Transform.translate(
+                                    offset: Offset(offset, 0),
+                                    child: child,
+                                  );
+                                },
+                                child: Container(
+                                  margin: const EdgeInsets.only(right: 8),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.primary,
+                                    borderRadius: BorderRadius.circular(999),
+                                    boxShadow: const [
+                                      BoxShadow(
+                                        color: Colors.black12,
+                                        blurRadius: 6,
+                                        offset: Offset(0, 2),
                                       ),
-                                    ),
-                                    const SizedBox(width: 4),
-                                    AnimatedBuilder(
-                                      animation: _quickLinksHintController,
-                                      builder: (context, child) {
-                                        final offset = 4 *
-                                            _quickLinksHintController.value;
-                                        return Transform.translate(
-                                          offset: Offset(offset, 0),
-                                          child: child,
-                                        );
-                                      },
-                                      child: const Icon(
+                                    ],
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: const [
+                                      Text(
+                                        'Swipe',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      SizedBox(width: 4),
+                                      Icon(
                                         Icons.chevron_right,
                                         size: 16,
                                         color: Colors.white,
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
@@ -356,7 +370,7 @@ class _HomeScreenState extends State<HomeScreen>
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF1F2937),
+                        color: AppTheme.foreground,
                       ),
                     ),
                     GestureDetector(
@@ -368,7 +382,7 @@ class _HomeScreenState extends State<HomeScreen>
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: Color(0xFF1F2937),
+                          color: AppTheme.primary,
                         ),
                       ),
                     ),
@@ -422,7 +436,7 @@ class _HomeScreenState extends State<HomeScreen>
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF1F2937),
+                      color: AppTheme.foreground,
                     ),
                   ),
                   GestureDetector(
@@ -434,7 +448,7 @@ class _HomeScreenState extends State<HomeScreen>
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF1F2937),
+                        color: AppTheme.primary,
                       ),
                     ),
                   ),
@@ -504,16 +518,16 @@ class _HomeScreenState extends State<HomeScreen>
                     style: TextStyle(
                       fontSize: 13,
                       height: 1.5,
-                      color: Color(0xFF374151),
+                      color: AppTheme.mutedForeground,
                     ),
                   ),
                   const SizedBox(height: 16),
-                  Row(
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 8,
                     children: [
                       _buildTrustBadge('Verified Users'),
-                      const SizedBox(width: 12),
                       _buildTrustBadge('Secure Payments'),
-                      const SizedBox(width: 12),
                       _buildTrustBadge('Local Community'),
                     ],
                   ),
@@ -543,7 +557,7 @@ class _HomeScreenState extends State<HomeScreen>
             width: 56,
             height: 56,
             decoration: const BoxDecoration(
-              color: Color(0xFFF3F4F6),
+              color: AppTheme.muted,
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -558,7 +572,7 @@ class _HomeScreenState extends State<HomeScreen>
             style: const TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w500,
-              color: Color(0xFF4B5563),
+              color: AppTheme.mutedForeground,
             ),
           ),
         ],
