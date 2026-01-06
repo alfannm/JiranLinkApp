@@ -427,8 +427,10 @@ class _HomeScreenState extends State<HomeScreen>
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
                     final item = nearbyItems[index];
+                    final heroTag = 'home-nearby-${item.id}';
                     return ItemCard(
                       item: item,
+                      heroTag: heroTag,
                       isFavorite: favoritesProvider.isFavorite(item.id),
                       onToggleFavorite: () {
                         favoritesProvider.toggleFavorite(item.id);
@@ -437,7 +439,10 @@ class _HomeScreenState extends State<HomeScreen>
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => ItemDetailScreen(item: item),
+                            builder: (context) => ItemDetailScreen(
+                              item: item,
+                              heroTag: heroTag,
+                            ),
                           ),
                         );
                       },
@@ -491,24 +496,29 @@ class _HomeScreenState extends State<HomeScreen>
                 childAspectRatio: 0.70,
               ),
               delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final item = featuredItems[index];
-                  return ItemCard(
-                    item: item,
-                    isFavorite: favoritesProvider.isFavorite(item.id),
-                    onToggleFavorite: () {
-                      favoritesProvider.toggleFavorite(item.id);
-                    },
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ItemDetailScreen(item: item),
-                        ),
-                      );
-                    },
-                  );
-                },
+                  (context, index) {
+                    final item = featuredItems[index];
+                    final heroTag = 'home-featured-${item.id}';
+                    return ItemCard(
+                      item: item,
+                      heroTag: heroTag,
+                      isFavorite: favoritesProvider.isFavorite(item.id),
+                      onToggleFavorite: () {
+                        favoritesProvider.toggleFavorite(item.id);
+                      },
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ItemDetailScreen(
+                              item: item,
+                              heroTag: heroTag,
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  },
                 childCount: featuredItems.length,
               ),
             ),

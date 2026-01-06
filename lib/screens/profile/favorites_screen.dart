@@ -57,18 +57,23 @@ class FavoritesScreen extends StatelessWidget {
               ),
               itemCount: favoriteItems.length,
               itemBuilder: (context, index) {
+                final item = favoriteItems[index];
+                final heroTag = 'favorites-${item.id}';
                 return ItemCard(
-                  item: favoriteItems[index],
+                  item: item,
+                  heroTag: heroTag,
                   isFavorite: true,
                   onToggleFavorite: () {
-                    favorites.toggleFavorite(favoriteItems[index].id);
+                    favorites.toggleFavorite(item.id);
                   },
                   onTap: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) =>
-                            ItemDetailScreen(item: favoriteItems[index]),
+                        builder: (_) => ItemDetailScreen(
+                          item: item,
+                          heroTag: heroTag,
+                        ),
                       ),
                     );
                   },

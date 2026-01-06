@@ -49,8 +49,10 @@ class MyListingsScreen extends StatelessWidget {
               itemCount: myListings.length,
               itemBuilder: (context, index) {
                 final item = myListings[index];
+                final heroTag = 'my-listings-${item.id}';
                 return ItemCard(
                   item: item,
+                  heroTag: heroTag,
                   isFavorite: favoritesProvider.isFavorite(item.id),
                   onToggleFavorite: () {
                     favoritesProvider.toggleFavorite(item.id);
@@ -59,7 +61,10 @@ class MyListingsScreen extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => ItemDetailScreen(item: item),
+                        builder: (context) => ItemDetailScreen(
+                          item: item,
+                          heroTag: heroTag,
+                        ),
                       ),
                     );
                   },

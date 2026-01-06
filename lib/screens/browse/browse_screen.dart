@@ -165,8 +165,10 @@ class _BrowseScreenState extends State<BrowseScreen> {
                       itemCount: items.length,
                       itemBuilder: (context, index) {
                         final item = items[index];
+                        final heroTag = 'browse-${item.id}';
                         return ItemCard(
                           item: item,
+                          heroTag: heroTag,
                           isFavorite: favoritesProvider.isFavorite(item.id),
                           onToggleFavorite: () {
                             favoritesProvider.toggleFavorite(item.id);
@@ -175,8 +177,10 @@ class _BrowseScreenState extends State<BrowseScreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) =>
-                                    ItemDetailScreen(item: item),
+                                builder: (context) => ItemDetailScreen(
+                                  item: item,
+                                  heroTag: heroTag,
+                                ),
                               ),
                             );
                           },

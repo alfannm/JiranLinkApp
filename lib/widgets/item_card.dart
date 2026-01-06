@@ -8,6 +8,7 @@ class ItemCard extends StatefulWidget {
   final bool isFavorite;
   final VoidCallback onToggleFavorite;
   final VoidCallback? onTap;
+  final String? heroTag;
 
   const ItemCard({
     super.key,
@@ -15,6 +16,7 @@ class ItemCard extends StatefulWidget {
     required this.isFavorite,
     required this.onToggleFavorite,
     this.onTap,
+    this.heroTag,
   });
 
   @override
@@ -66,6 +68,7 @@ class _ItemCardState extends State<ItemCard> {
   @override
   Widget build(BuildContext context) {
     final item = widget.item;
+    final heroTag = widget.heroTag ?? 'item-image-${item.id}';
     final typeColor = _typeAccent(item);
 
     return GestureDetector(
@@ -102,7 +105,7 @@ class _ItemCardState extends State<ItemCard> {
                     child: AspectRatio(
                       aspectRatio: 4 / 3, // Keeps image nice and standard
                       child: Hero(
-                        tag: 'item-image-${item.id}',
+                        tag: heroTag,
                         child: CachedNetworkImage(
                           imageUrl: item.images.isNotEmpty
                               ? item.images.first

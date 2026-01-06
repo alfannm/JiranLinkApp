@@ -15,8 +15,13 @@ import '../../providers/items_provider.dart';
 
 class ItemDetailScreen extends StatefulWidget {
   final Item item;
+  final String? heroTag;
 
-  const ItemDetailScreen({super.key, required this.item});
+  const ItemDetailScreen({
+    super.key,
+    required this.item,
+    this.heroTag,
+  });
 
   @override
   State<ItemDetailScreen> createState() => _ItemDetailScreenState();
@@ -84,6 +89,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
     final itemsProvider = context.watch<ItemsProvider>();
     final item = itemsProvider.getItemById(widget.item.id) ?? widget.item;
     final owner = item.owner;
+    final heroTag = widget.heroTag ?? 'item-image-${item.id}';
     final favorites = context.watch<FavoritesProvider>();
     final currentUser = context.watch<AuthProvider>().currentUser;
     final dateFormat = DateFormat('MMM d, y');
@@ -124,7 +130,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                           onTap: () =>
                               _openFullScreenImage(item.images, _currentImageIndex),
                           child: Hero(
-                            tag: 'item-image-${item.id}',
+                            tag: heroTag,
                             child: item.images.length > 1
                                 ? CarouselSlider(
                                     options: CarouselOptions(
