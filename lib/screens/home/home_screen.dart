@@ -74,6 +74,7 @@ class _HomeScreenState extends State<HomeScreen>
     final itemsProvider = context.watch<ItemsProvider>();
     final favoritesProvider = context.watch<FavoritesProvider>();
     final authProvider = context.watch<AuthProvider>();
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
     final currentUser = authProvider.currentUser;
     final isUpdatingLocation = authProvider.isUpdatingLocation;
     final locationLabel =
@@ -142,7 +143,7 @@ class _HomeScreenState extends State<HomeScreen>
                         padding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
+                          color: Colors.white.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Row(
@@ -197,14 +198,11 @@ class _HomeScreenState extends State<HomeScreen>
                       const SizedBox(width: 8),
                       GestureDetector(
                         onTap: () async {
-                          await context
-                              .read<AuthProvider>()
-                              .updateLocationDistrict(force: true);
+                          await authProvider.updateLocationDistrict(force: true);
                           if (!mounted) return;
-                          final error =
-                              context.read<AuthProvider>().locationError;
+                          final error = authProvider.locationError;
                           if (error != null && error.isNotEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(
+                            scaffoldMessenger.showSnackBar(
                               SnackBar(content: Text(error)),
                             );
                           }
@@ -350,9 +348,9 @@ class _HomeScreenState extends State<HomeScreen>
                                       ),
                                     ],
                                   ),
-                                  child: Row(
+                                  child: const Row(
                                     mainAxisSize: MainAxisSize.min,
-                                    children: const [
+                                    children: [
                                       Text(
                                         'Swipe',
                                         style: TextStyle(
@@ -530,10 +528,10 @@ class _HomeScreenState extends State<HomeScreen>
               margin: const EdgeInsets.fromLTRB(16, 32, 16, 40),
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: AppTheme.primary.withOpacity(0.08),
+                color: AppTheme.primary.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: AppTheme.primary.withOpacity(0.25),
+                  color: AppTheme.primary.withValues(alpha: 0.25),
                 ),
               ),
               child: Column(
@@ -600,10 +598,10 @@ class _HomeScreenState extends State<HomeScreen>
             decoration: BoxDecoration(
               color: backgroundColor,
               shape: BoxShape.circle,
-              border: Border.all(color: accentColor.withOpacity(0.25)),
+              border: Border.all(color: accentColor.withValues(alpha: 0.25)),
               boxShadow: [
                 BoxShadow(
-                  color: accentColor.withOpacity(0.12),
+                  color: accentColor.withValues(alpha: 0.12),
                   blurRadius: 8,
                   offset: const Offset(0, 4),
                 ),

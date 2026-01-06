@@ -33,6 +33,7 @@ class _BrowseScreenState extends State<BrowseScreen> {
   Widget build(BuildContext context) {
     final itemsProvider = context.watch<ItemsProvider>();
     final favoritesProvider = context.watch<FavoritesProvider>();
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
     final items = itemsProvider.items;
 
     // Sync controller with provider if needed (e.g. initial load or external update)
@@ -97,7 +98,7 @@ class _BrowseScreenState extends State<BrowseScreen> {
                             final ok = await itemsProvider.detectAndSetUserLocation();
                             if (!mounted) return;
                             if (!ok) {
-                              ScaffoldMessenger.of(context).showSnackBar(
+                              scaffoldMessenger.showSnackBar(
                                 const SnackBar(content: Text('Could not get location. Check GPS + permissions.')),
                               );
                               return;

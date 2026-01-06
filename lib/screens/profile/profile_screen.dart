@@ -17,6 +17,7 @@ class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
   Future<void> _contactSupport(BuildContext context) async {
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
     final emailUri = Uri(
       scheme: 'mailto',
       path: 's72505@ocean.umt.edu.my',
@@ -25,16 +26,16 @@ class ProfileScreen extends StatelessWidget {
       final launched =
           await launchUrl(emailUri, mode: LaunchMode.externalApplication);
       if (!launched) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        scaffoldMessenger.showSnackBar(
           const SnackBar(content: Text('Unable to open email app.')),
         );
       }
     } on PlatformException {
-      ScaffoldMessenger.of(context).showSnackBar(
+      scaffoldMessenger.showSnackBar(
         const SnackBar(content: Text('Unable to open email app.')),
       );
     } catch (_) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      scaffoldMessenger.showSnackBar(
         const SnackBar(content: Text('Unable to open email app.')),
       );
     }
@@ -350,7 +351,7 @@ class ProfileScreen extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.15),
+          color: Colors.white.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(

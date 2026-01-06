@@ -71,10 +71,8 @@ class AppTheme {
         tertiaryContainer: accentSoft,
         onTertiaryContainer: accentDeep,
         surface: cardBackground,
-        surfaceVariant: muted,
+        surfaceContainerHighest: muted,
         onSurface: foreground,
-        background: background,
-        onBackground: foreground,
         error: destructive,
         onError: Colors.white,
         outline: border,
@@ -324,17 +322,17 @@ class AppTheme {
       ),
 
       checkboxTheme: CheckboxThemeData(
-        fillColor: MaterialStatePropertyAll(primary),
+        fillColor: const WidgetStatePropertyAll(primary),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
       ),
 
       radioTheme: const RadioThemeData(
-        fillColor: MaterialStatePropertyAll(primary),
+        fillColor: WidgetStatePropertyAll(primary),
       ),
 
       switchTheme: const SwitchThemeData(
-        thumbColor: MaterialStatePropertyAll(primary),
-        trackColor: MaterialStatePropertyAll(Color(0x3300A651)),
+        thumbColor: WidgetStatePropertyAll(primary),
+        trackColor: WidgetStatePropertyAll(Color(0x3300A651)),
       ),
     );
   }

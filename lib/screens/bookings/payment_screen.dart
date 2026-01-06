@@ -26,20 +26,23 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   Future<void> _submitPayment() async {
     if (_processing) return;
+    final bookingsProvider = context.read<BookingsProvider>();
+    final navigator = Navigator.of(context);
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
     setState(() {
       _processing = true;
     });
     try {
       await Future.delayed(const Duration(milliseconds: 900));
-      await context.read<BookingsProvider>().markPaymentReceived(widget.booking);
+      await bookingsProvider.markPaymentReceived(widget.booking);
       if (!mounted) return;
-      Navigator.pop(context, true);
+      navigator.pop(true);
     } catch (e) {
       if (!mounted) return;
       setState(() {
         _processing = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
+      scaffoldMessenger.showSnackBar(
         SnackBar(content: Text('Payment failed: $e')),
       );
     }
@@ -101,7 +104,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
           color: Colors.white,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, -5),
             ),
@@ -161,7 +164,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppTheme.primary.withOpacity(0.08),
+        color: AppTheme.primary.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppTheme.border),
       ),
@@ -344,28 +347,37 @@ class _PaymentScreenState extends State<PaymentScreen> {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppTheme.border),
       ),
-      child: Column(
-        children: [
-          _buildPaymentOption(
-            value: 0,
-            icon: Icons.credit_card,
-            title: 'Credit or Debit Card',
-            subtitle: 'Visa, MasterCard, Amex',
-          ),
-          if (_selectedMethod == 0) _buildSavedCardRow(),
-          _buildPaymentOption(
-            value: 1,
-            icon: Icons.account_balance,
-            title: 'Online Banking (FPX)',
-            subtitle: 'Redirect to your bank to complete payment',
-          ),
-          _buildPaymentOption(
-            value: 2,
-            icon: Icons.account_balance_wallet,
-            title: 'E-wallet',
-            subtitle: 'Touch n Go, GrabPay, Boost',
-          ),
-        ],
+      child: RadioGroup<int>(
+        groupValue: _selectedMethod,
+        onChanged: (selected) {
+          if (selected == null) return;
+          setState(() {
+            _selectedMethod = selected;
+          });
+        },
+        child: Column(
+          children: [
+            _buildPaymentOption(
+              value: 0,
+              icon: Icons.credit_card,
+              title: 'Credit or Debit Card',
+              subtitle: 'Visa, MasterCard, Amex',
+            ),
+            if (_selectedMethod == 0) _buildSavedCardRow(),
+            _buildPaymentOption(
+              value: 1,
+              icon: Icons.account_balance,
+              title: 'Online Banking (FPX)',
+              subtitle: 'Redirect to your bank to complete payment',
+            ),
+            _buildPaymentOption(
+              value: 2,
+              icon: Icons.account_balance_wallet,
+              title: 'E-wallet',
+              subtitle: 'Touch n Go, GrabPay, Boost',
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -389,13 +401,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
           children: [
             Radio<int>(
               value: value,
-              groupValue: _selectedMethod,
-              onChanged: (selected) {
-                if (selected == null) return;
-                setState(() {
-                  _selectedMethod = selected;
-                });
-              },
             ),
             Icon(icon, color: AppTheme.primary),
             const SizedBox(width: 12),

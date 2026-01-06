@@ -92,6 +92,8 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
     final heroTag = widget.heroTag ?? 'item-image-${item.id}';
     final favorites = context.watch<FavoritesProvider>();
     final currentUser = context.watch<AuthProvider>().currentUser;
+    final navigator = Navigator.of(context);
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
     final dateFormat = DateFormat('MMM d, y');
     final isOwner = currentUser != null &&
         (owner.id == currentUser.id ||
@@ -186,7 +188,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                                 end: Alignment.bottomCenter,
                                 colors: [
                                   Colors.transparent,
-                                  Colors.black.withOpacity(0.7),
+                                  Colors.black.withValues(alpha: 0.7),
                                 ],
                               ),
                             ),
@@ -212,7 +214,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                                       horizontal: 4.0),
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
-                                    color: Colors.white.withOpacity(
+                                    color: Colors.white.withValues(alpha: 
                                         _currentImageIndex == entry.key
                                             ? 0.9
                                             : 0.4),
@@ -230,11 +232,11 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                 onPressed: () => Navigator.pop(context),
                 icon: Container(
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.9),
+                    color: Colors.white.withValues(alpha: 0.9),
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.2),
+                        color: Colors.black.withValues(alpha: 0.2),
                         blurRadius: 6,
                         offset: const Offset(0, 2),
                       ),
@@ -252,11 +254,11 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                   },
                   icon: Container(
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white.withValues(alpha: 0.9),
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
+                          color: Colors.black.withValues(alpha: 0.2),
                           blurRadius: 6,
                           offset: const Offset(0, 2),
                         ),
@@ -596,13 +598,13 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
       ),
       bottomSheet: Container(
         padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: AppTheme.cardBackground,
           boxShadow: [
             BoxShadow(
               color: AppTheme.shadow,
               blurRadius: 10,
-              offset: const Offset(0, -5),
+              offset: Offset(0, -5),
             ),
           ],
         ),
@@ -617,15 +619,14 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                           side: const BorderSide(color: AppTheme.primary),
                         ),
                         onPressed: () async {
-                          final updated = await Navigator.push<bool>(
-                            context,
+                          final updated = await navigator.push<bool>(
                             MaterialPageRoute(
                               builder: (_) => PostItemScreen(existingItem: item),
                             ),
                           );
                           if (!mounted) return;
                           if (updated == true) {
-                            ScaffoldMessenger.of(context).showSnackBar(
+                            scaffoldMessenger.showSnackBar(
                               const SnackBar(
                                   content: Text('Listing updated.')),
                             );
@@ -666,12 +667,12 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                             ),
                           );
                           if (confirmed != true) return;
-                          await context.read<ItemsProvider>().deleteItem(item);
+                          await itemsProvider.deleteItem(item);
                           if (!mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(
+                          scaffoldMessenger.showSnackBar(
                             const SnackBar(content: Text('Listing deleted.')),
                           );
-                          Navigator.pop(context);
+                          navigator.pop();
                         },
                         child: const Text('Delete Listing'),
                       ),
@@ -711,8 +712,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                             ),
                             onPressed: () async {
                               if (currentUser == null) return;
-                              final sent = await Navigator.push<bool>(
-                                context,
+                              final sent = await navigator.push<bool>(
                                 MaterialPageRoute(
                                   builder: (context) => BookingRequestScreen(
                                     item: item,
@@ -722,7 +722,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                               );
                               if (!mounted) return;
                               if (sent == true) {
-                                ScaffoldMessenger.of(context).showSnackBar(
+                                scaffoldMessenger.showSnackBar(
                                   const SnackBar(
                                       content: Text('Request sent to owner.')),
                                 );
@@ -789,9 +789,9 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
+        color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.35)),
+        border: Border.all(color: color.withValues(alpha: 0.35)),
       ),
       child: Text(
         label,
@@ -809,7 +809,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
+        color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Text(

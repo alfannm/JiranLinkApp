@@ -16,7 +16,7 @@ class MessagesProvider extends ChangeNotifier {
 
   List<ChatThread> get threads => _threads;
   int get unreadCount =>
-      _threads.fold(0, (sum, t) => sum + t.unreadCount);
+      _threads.fold(0, (total, t) => total + t.unreadCount);
 
   void setUser(app.User? user) {
     if (user?.id == _currentUser?.id) return;

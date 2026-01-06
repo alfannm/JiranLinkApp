@@ -71,6 +71,7 @@ class RequestCard extends StatelessWidget {
 
   Future<void> _handleDecision(BuildContext context,
       {required bool accept}) async {
+    final provider = context.read<BookingsProvider>();
     final result = await showDialog<String>(
       context: context,
       builder: (context) => _RequestDecisionDialog(accept: accept),
@@ -78,7 +79,6 @@ class RequestCard extends StatelessWidget {
     if (result == null) return;
 
     final message = result.isEmpty ? null : result;
-    final provider = context.read<BookingsProvider>();
     if (accept) {
       await provider.acceptRequest(booking.id, message: message);
     } else {
@@ -147,7 +147,7 @@ class RequestCard extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
-                          color: statusColor.withOpacity(0.12),
+                          color: statusColor.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(

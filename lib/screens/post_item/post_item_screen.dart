@@ -380,14 +380,18 @@ class _PostItemScreenState extends State<PostItemScreen> {
 
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) return;
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+    final itemsProvider = context.read<ItemsProvider>();
+    final currentUser = context.read<AuthProvider>().currentUser;
+
     if (_totalImages == 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      scaffoldMessenger.showSnackBar(
         const SnackBar(content: Text('Please add at least one photo.')),
       );
       return;
     }
 
-    final currentUser = context.read<AuthProvider>().currentUser;
     if (currentUser == null) return;
     final existingItem = widget.existingItem;
     if (_isEditing && existingItem != null) {
@@ -396,7 +400,7 @@ class _PostItemScreenState extends State<PostItemScreen> {
               existingItem.owner.email.isNotEmpty &&
               existingItem.owner.email == currentUser.email);
       if (!ownerMatches) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        scaffoldMessenger.showSnackBar(
           const SnackBar(content: Text('You can only edit your own listings.')),
         );
         return;
@@ -404,7 +408,7 @@ class _PostItemScreenState extends State<PostItemScreen> {
     }
 
     if (_selectedState == null || _selectedDistrict == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      scaffoldMessenger.showSnackBar(
         const SnackBar(content: Text('Please select state and district.')),
       );
       return;
@@ -472,30 +476,30 @@ class _PostItemScreenState extends State<PostItemScreen> {
       );
 
       if (_isEditing) {
-        await context.read<ItemsProvider>().updateItem(
+        await itemsProvider.updateItem(
               item: updatedItem,
               newImages: _images,
               existingImageUrls: _existingImageUrls,
             );
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
+        scaffoldMessenger.showSnackBar(
           const SnackBar(content: Text('Listing updated successfully!')),
         );
       } else {
-        await context.read<ItemsProvider>().createItem(
+        await itemsProvider.createItem(
               item: updatedItem,
               images: _images,
             );
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
+        scaffoldMessenger.showSnackBar(
           const SnackBar(content: Text('Item posted successfully!')),
         );
       }
       if (!mounted) return;
-      Navigator.pop(context, true);
+      navigator.pop(true);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      scaffoldMessenger.showSnackBar(
         SnackBar(
           content: Text(
             _isEditing ? 'Failed to update item: $e' : 'Failed to post item: $e',

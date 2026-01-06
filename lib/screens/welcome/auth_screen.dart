@@ -53,12 +53,13 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
   Future<void> _handleGoogle(BuildContext context) async {
     setState(() => _isLoading = true);
     final auth = context.read<AuthProvider>();
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
 
     try {
       await auth.signInWithGoogle();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      scaffoldMessenger.showSnackBar(
         SnackBar(content: Text('Google sign-in failed: $e')),
       );
     } finally {
@@ -72,6 +73,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
 
     setState(() => _isLoading = true);
     final auth = context.read<AuthProvider>();
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
 
     try {
       await auth.signInWithEmail(
@@ -80,7 +82,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      scaffoldMessenger.showSnackBar(
         SnackBar(content: Text('Login failed: $e')),
       );
     } finally {
@@ -94,6 +96,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
 
     setState(() => _isLoading = true);
     final auth = context.read<AuthProvider>();
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
 
     try {
       await auth.registerWithEmail(
@@ -103,7 +106,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      scaffoldMessenger.showSnackBar(
         SnackBar(content: Text('Registration failed: $e')),
       );
     } finally {
@@ -122,7 +125,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
             right: -80,
             child: _GlowBlob(
               size: 260,
-              color: AppTheme.primary.withOpacity(0.18),
+              color: AppTheme.primary.withValues(alpha: 0.18),
             ),
           ),
           Positioned(
@@ -130,7 +133,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
             left: -60,
             child: _GlowBlob(
               size: 280,
-              color: AppTheme.primaryDark.withOpacity(0.18),
+              color: AppTheme.primaryDark.withValues(alpha: 0.18),
             ),
           ),
           SafeArea(
@@ -161,7 +164,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
                           borderRadius: BorderRadius.circular(18),
                           boxShadow: [
                             BoxShadow(
-                              color: AppTheme.primary.withOpacity(0.32),
+                              color: AppTheme.primary.withValues(alpha: 0.32),
                               blurRadius: 24,
                               offset: const Offset(0, 12),
                             ),
@@ -202,7 +205,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
                         border: Border.all(color: AppTheme.border),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.25),
+                            color: Colors.black.withValues(alpha: 0.25),
                             blurRadius: 30,
                             offset: const Offset(0, 12),
                           ),
@@ -506,7 +509,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppTheme.primary.withOpacity(0.8), width: 1.2),
+              borderSide: BorderSide(color: AppTheme.primary.withValues(alpha: 0.8), width: 1.2),
             ),
           ),
         ),
@@ -569,7 +572,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
                     borderRadius: BorderRadius.circular(10),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.06),
+                        color: Colors.black.withValues(alpha: 0.06),
                         blurRadius: 6,
                         offset: const Offset(0, 2),
                       ),
@@ -655,7 +658,7 @@ class _GlowBlob extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         gradient: RadialGradient(
-          colors: [color, color.withOpacity(0.0)],
+          colors: [color, color.withValues(alpha: 0.0)],
         ),
       ),
     );

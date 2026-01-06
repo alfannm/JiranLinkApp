@@ -319,7 +319,7 @@ class _BookingRequestScreenState extends State<BookingRequestScreen> {
               child: Row(
                 children: [
                   CircleAvatar(
-                    backgroundColor: AppTheme.primary.withOpacity(0.2),
+                    backgroundColor: AppTheme.primary.withValues(alpha: 0.2),
                     backgroundImage:
                         owner.avatar != null ? NetworkImage(owner.avatar!) : null,
                     child: owner.avatar == null
@@ -366,7 +366,7 @@ class _BookingRequestScreenState extends State<BookingRequestScreen> {
           color: Colors.white,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, -5),
             ),
