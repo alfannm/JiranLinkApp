@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "1044767177684-9cpbam2k9c6ocu37c5d16oikb08r1tg0.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.jiranlink_app",
+            "certificate_hash": "467bbf4f48cf09c1e14046bf1d37aaba22fbd576"
+          }
+        },
+        {
           "client_id": "1044767177684-p99p1sash8pq7ncjkhtrob00qdtjushg.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
