@@ -264,7 +264,7 @@ class _BookingRequestScreenState extends State<BookingRequestScreen> {
             ),
             const SizedBox(height: 20),
             _buildSectionHeader(
-              'Special Notes (Optional)',
+              'Remarks (Optional)',
               Icons.description_outlined,
             ),
             const SizedBox(height: 12),
