@@ -5,6 +5,7 @@ import '../../widgets/item_card.dart';
 import '../../providers/favorites_provider.dart';
 import '../../providers/items_provider.dart';
 import '../item_details/item_detail_screen.dart';
+import '../main_navigation.dart';
 
 class FavoritesScreen extends StatelessWidget {
   const FavoritesScreen({super.key});
@@ -34,7 +35,14 @@ class FavoritesScreen extends StatelessWidget {
                   const SizedBox(height: 8),
                   ElevatedButton(
                       onPressed: () {
-                        Navigator.pop(context);
+                        Navigator.of(context).pushAndRemoveUntil(
+                          MaterialPageRoute(
+                            builder: (_) => const MainNavigation(
+                              initialIndex: 1,
+                            ),
+                          ),
+                          (route) => false,
+                        );
                       },
                       child: const Text('Browse Items'))
                 ],

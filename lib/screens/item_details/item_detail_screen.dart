@@ -3,7 +3,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter/services.dart';
 import '../../models/item.dart';
 import '../../theme/app_theme.dart';
 
@@ -297,7 +296,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                             if (showExpectedAvailable) ...[
                               const SizedBox(height: 6),
                               Text(
-                                'Expected available date: ${dateFormat.format(expectedAvailableDate!)}',
+                                'Expected available date: ${dateFormat.format(expectedAvailableDate)}',
                                 textAlign: TextAlign.right,
                                 style: const TextStyle(
                                   color: AppTheme.mutedForeground,
@@ -576,9 +575,9 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: const Color(0xFFBFDBFE)),
                       ),
-                      child: Column(
+                      child: const Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
+                        children: [
                           Row(
                             children: [
                               Icon(Icons.shield_outlined,

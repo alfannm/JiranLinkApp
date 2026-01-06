@@ -10,7 +10,9 @@ import 'messages/messages_screen.dart';
 import 'profile/profile_screen.dart';
 
 class MainNavigation extends StatefulWidget {
-  const MainNavigation({super.key});
+  const MainNavigation({super.key, this.initialIndex = 0});
+
+  final int initialIndex;
 
   static MainNavigationState? of(BuildContext context) {
     return context.findAncestorStateOfType<MainNavigationState>();
@@ -21,7 +23,13 @@ class MainNavigation extends StatefulWidget {
 }
 
 class MainNavigationState extends State<MainNavigation> {
-  int _currentIndex = 0;
+  late int _currentIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialIndex;
+  }
 
   void switchToTab(int index) {
     setState(() {

@@ -8,7 +8,6 @@ import 'package:image_picker/image_picker.dart';
 import '../../theme/app_theme.dart';
 import '../../providers/items_provider.dart';
 import '../../providers/auth_provider.dart';
-import 'package:geocoding/geocoding.dart';
 import '../../models/item.dart';
 import '../../services/location_service.dart';
 
@@ -714,7 +713,7 @@ class _PostItemScreenState extends State<PostItemScreen> {
                 children: [
                   Expanded(
                     child: DropdownButtonFormField<ItemCategory>(
-                      value: _selectedCategory,
+                      initialValue: _selectedCategory,
                       decoration: const InputDecoration(
                         labelText: 'Category',
                         border: OutlineInputBorder(),
@@ -750,7 +749,7 @@ class _PostItemScreenState extends State<PostItemScreen> {
                     const SizedBox(width: 16),
                     Expanded(
                       child: DropdownButtonFormField<ItemType>(
-                        value: typeOptions.contains(_selectedType)
+                        initialValue: typeOptions.contains(_selectedType)
                             ? _selectedType
                             : typeOptions.first,
                         decoration: const InputDecoration(
@@ -785,7 +784,7 @@ class _PostItemScreenState extends State<PostItemScreen> {
               if (!isServiceCategory) ...[
                 // Condition
                 DropdownButtonFormField<ItemCondition>(
-                  value: _selectedCondition,
+                  initialValue: _selectedCondition,
                   decoration: const InputDecoration(
                     labelText: 'Condition',
                     border: OutlineInputBorder(),
@@ -840,7 +839,7 @@ class _PostItemScreenState extends State<PostItemScreen> {
                     Expanded(
                       flex: 2,
                       child: DropdownButtonFormField<PriceUnit>(
-                        value: _selectedPriceUnit,
+                        initialValue: _selectedPriceUnit,
                         decoration: const InputDecoration(
                           labelText: 'Per',
                           border: OutlineInputBorder(),
@@ -899,7 +898,7 @@ class _PostItemScreenState extends State<PostItemScreen> {
                   Expanded(
                     child: DropdownButtonFormField<String>(
                       isExpanded: true,
-                      value: _selectedState,
+                      initialValue: _selectedState,
                       hint: const Text('State'),
                       decoration: const InputDecoration(
                         border: OutlineInputBorder(),
@@ -926,7 +925,7 @@ class _PostItemScreenState extends State<PostItemScreen> {
                   Expanded(
                     child: DropdownButtonFormField<String>(
                       isExpanded: true,
-                      value: _selectedDistrict,
+                      initialValue: _selectedDistrict,
                       hint: const Text('District'),
                       decoration: const InputDecoration(
                         border: OutlineInputBorder(),
