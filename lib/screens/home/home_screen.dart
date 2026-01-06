@@ -80,6 +80,14 @@ class _HomeScreenState extends State<HomeScreen>
         (isUpdatingLocation && authProvider.locationDistrict == 'Unknown')
             ? 'Detecting...'
             : authProvider.locationDistrict;
+    final quickLinkColors = [
+      AppTheme.accentLeaf,
+      AppTheme.accentAmber,
+      AppTheme.accentTeal,
+      AppTheme.accentOlive,
+      AppTheme.accentTerracotta,
+      AppTheme.accentLeaf,
+    ];
 
     if (currentUser == null) {
       return const Scaffold(
@@ -146,12 +154,28 @@ class _HomeScreenState extends State<HomeScreen>
                               size: 14,
                             ),
                             const SizedBox(width: 4),
-                            Text(
-                              locationLabel,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
+                            AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 220),
+                              transitionBuilder: (child, animation) {
+                                return FadeTransition(
+                                  opacity: animation,
+                                  child: SlideTransition(
+                                    position: Tween<Offset>(
+                                      begin: const Offset(0, 0.2),
+                                      end: Offset.zero,
+                                    ).animate(animation),
+                                    child: child,
+                                  ),
+                                );
+                              },
+                              child: Text(
+                                locationLabel,
+                                key: ValueKey(locationLabel),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                             ),
                             if (isUpdatingLocation) ...[
@@ -267,25 +291,26 @@ class _HomeScreenState extends State<HomeScreen>
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             _buildCategoryItem(context,
-                                Icons.inventory_2_outlined, 'All', null),
+                                Icons.inventory_2_outlined, 'All', null, quickLinkColors[0]),
                             const SizedBox(width: 16),
                             _buildCategoryItem(context,
-                                Icons.construction_outlined, 'Tools', ItemCategory.tools),
+                                Icons.construction_outlined, 'Tools', ItemCategory.tools, quickLinkColors[1]),
                             const SizedBox(width: 16),
                             _buildCategoryItem(context, Icons.devices_outlined,
-                                'Appliances', ItemCategory.appliances),
+                                'Appliances', ItemCategory.appliances, quickLinkColors[2]),
                             const SizedBox(width: 16),
                             _buildCategoryItem(context, Icons.lightbulb_outline,
-                                'Skills', ItemCategory.skills),
+                                'Skills', ItemCategory.skills, quickLinkColors[3]),
                             const SizedBox(width: 16),
                             _buildCategoryItem(
                                 context,
                                 Icons.business_center_outlined,
                                 'Services',
-                                ItemCategory.services),
+                                ItemCategory.services,
+                                quickLinkColors[4]),
                             const SizedBox(width: 16),
                             _buildCategoryItem(context, Icons.settings_outlined,
-                                'Others', ItemCategory.others),
+                                'Others', ItemCategory.others, quickLinkColors[5]),
                             const SizedBox(width: 12),
                           ],
                         ),
@@ -545,7 +570,13 @@ class _HomeScreenState extends State<HomeScreen>
     IconData icon,
     String label,
     ItemCategory? category,
+    Color accentColor,
   ) {
+    final backgroundColor = Color.lerp(
+      AppTheme.muted,
+      accentColor,
+      0.12,
+    )!;
     return GestureDetector(
       onTap: () {
         context.read<ItemsProvider>().setCategory(category);
@@ -556,13 +587,21 @@ class _HomeScreenState extends State<HomeScreen>
           Container(
             width: 56,
             height: 56,
-            decoration: const BoxDecoration(
-              color: AppTheme.muted,
+            decoration: BoxDecoration(
+              color: backgroundColor,
               shape: BoxShape.circle,
+              border: Border.all(color: accentColor.withOpacity(0.25)),
+              boxShadow: [
+                BoxShadow(
+                  color: accentColor.withOpacity(0.12),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
             child: Icon(
               icon,
-              color: AppTheme.primary,
+              color: accentColor,
               size: 24,
             ),
           ),

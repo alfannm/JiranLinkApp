@@ -123,45 +123,49 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                         GestureDetector(
                           onTap: () =>
                               _openFullScreenImage(item.images, _currentImageIndex),
-                          child: item.images.length > 1
-                              ? CarouselSlider(
-                                  options: CarouselOptions(
-                                    height: constraints.maxHeight,
-                                    viewportFraction: 1.0,
-                                    enableInfiniteScroll: false,
-                                    autoPlay: false,
-                                    onPageChanged: (index, reason) {
-                                      setState(() {
-                                        _currentImageIndex = index;
-                                      });
-                                    },
-                                  ),
-                                  items: item.images.map((imageUrl) {
-                                    return Builder(
-                                      builder: (BuildContext context) {
-                                        return CachedNetworkImage(
-                                          imageUrl: imageUrl,
-                                          fit: BoxFit.cover,
-                                          width: double.infinity,
-                                          placeholder: (context, url) =>
-                                              Container(color: AppTheme.muted),
-                                          errorWidget: (context, url, error) =>
-                                              const Icon(Icons.error),
-                                        );
+                          child: Hero(
+                            tag: 'item-image-${item.id}',
+                            child: item.images.length > 1
+                                ? CarouselSlider(
+                                    options: CarouselOptions(
+                                      height: constraints.maxHeight,
+                                      viewportFraction: 1.0,
+                                      enableInfiniteScroll: false,
+                                      autoPlay: false,
+                                      onPageChanged: (index, reason) {
+                                        setState(() {
+                                          _currentImageIndex = index;
+                                        });
                                       },
-                                    );
-                                  }).toList(),
-                                )
-                              : CachedNetworkImage(
-                                  imageUrl: item.images.isNotEmpty
-                                      ? item.images.first
-                                      : 'https://placehold.co/1200x800/png',
-                                  fit: BoxFit.cover,
-                                  placeholder: (context, url) =>
-                                      Container(color: AppTheme.muted),
-                                  errorWidget: (context, url, error) =>
-                                      const Icon(Icons.error),
-                                ),
+                                    ),
+                                    items: item.images.map((imageUrl) {
+                                      return Builder(
+                                        builder: (BuildContext context) {
+                                          return CachedNetworkImage(
+                                            imageUrl: imageUrl,
+                                            fit: BoxFit.cover,
+                                            width: double.infinity,
+                                            placeholder: (context, url) =>
+                                                Container(color: AppTheme.muted),
+                                            errorWidget:
+                                                (context, url, error) =>
+                                                    const Icon(Icons.error),
+                                          );
+                                        },
+                                      );
+                                    }).toList(),
+                                  )
+                                : CachedNetworkImage(
+                                    imageUrl: item.images.isNotEmpty
+                                        ? item.images.first
+                                        : 'https://placehold.co/1200x800/png',
+                                    fit: BoxFit.cover,
+                                    placeholder: (context, url) =>
+                                        Container(color: AppTheme.muted),
+                                    errorWidget: (context, url, error) =>
+                                        const Icon(Icons.error),
+                                  ),
+                          ),
                         ),
                         // Gradient overlay for text readability
                         Positioned(
@@ -294,7 +298,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                             Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                _buildTypeChip(item.type),
+                                _buildTypeChip(item),
                                 const SizedBox(width: 6),
                                 _buildStatusChip(item.available),
                               ],
@@ -539,9 +543,9 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                       width: double.infinity,
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFEFF6FF),
+                        color: AppTheme.accentSoft,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFFBFDBFE)),
+                        border: Border.all(color: AppTheme.accentSoftBorder),
                       ),
                       child: const Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -549,30 +553,30 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                           Row(
                             children: [
                               Icon(Icons.shield_outlined,
-                                  color: Color(0xFF2563EB)),
+                                  color: AppTheme.accentLeaf),
                               SizedBox(width: 8),
                               Text(
                                 'Safety Tips',
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
-                                  color: Color(0xFF1E3A8A),
+                                  color: AppTheme.accentDeep,
                                 ),
                               ),
                             ],
                           ),
                           SizedBox(height: 8),
                           Text('- Meet in a safe, public location if possible',
-                              style: TextStyle(color: Color(0xFF1E40AF))),
+                              style: TextStyle(color: AppTheme.accentMid)),
                           SizedBox(height: 4),
                           Text('- Inspect the item before making payment',
-                              style: TextStyle(color: Color(0xFF1E40AF))),
+                              style: TextStyle(color: AppTheme.accentMid)),
                           SizedBox(height: 4),
                           Text('- Use JiranLink\'s secure payment system',
-                              style: TextStyle(color: Color(0xFF1E40AF))),
+                              style: TextStyle(color: AppTheme.accentMid)),
                           SizedBox(height: 4),
                           Text('- Report any suspicious activity',
-                              style: TextStyle(color: Color(0xFF1E40AF))),
+                              style: TextStyle(color: AppTheme.accentMid)),
                         ],
                       ),
                     ),
@@ -773,18 +777,20 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
     }
   }
 
-  Widget _buildTypeChip(ItemType type) {
-    final label = _typeLabel(type).toUpperCase();
+  Widget _buildTypeChip(Item item) {
+    final label = _typeLabel(item).toUpperCase();
+    final color = _typeAccent(item);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: AppTheme.primary.withOpacity(0.12),
+        color: color.withOpacity(0.12),
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withOpacity(0.35)),
       ),
       child: Text(
         label,
-        style: const TextStyle(
-          color: AppTheme.primary,
+        style: TextStyle(
+          color: color,
           fontSize: 11,
           fontWeight: FontWeight.w600,
         ),
@@ -854,14 +860,35 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
     }
   }
 
-  String _typeLabel(ItemType type) {
-    switch (type) {
+  String _typeLabel(Item item) {
+    if ((item.category == ItemCategory.services ||
+            item.category == ItemCategory.skills) &&
+        item.type == ItemType.rent) {
+      return 'Job';
+    }
+    switch (item.type) {
       case ItemType.borrow:
         return 'Borrow';
       case ItemType.hire:
         return 'Hire';
       case ItemType.rent:
         return 'Rent';
+    }
+  }
+
+  Color _typeAccent(Item item) {
+    if ((item.category == ItemCategory.services ||
+            item.category == ItemCategory.skills) &&
+        item.type == ItemType.rent) {
+      return AppTheme.accentTerracotta;
+    }
+    switch (item.type) {
+      case ItemType.borrow:
+        return AppTheme.accentTeal;
+      case ItemType.hire:
+        return AppTheme.accentOlive;
+      case ItemType.rent:
+        return AppTheme.accentAmber;
     }
   }
 }

@@ -20,9 +20,32 @@ class AppTheme {
       Color(0xFFE7F3ED); // Soft fill for inputs and chips
   static const Color secondaryForeground = foreground;
   static const Color accent = Color(0xFF12B76A);
+  // Nature-forward accents that complement the green theme.
+  static const Color accentLeaf = Color(0xFF2F9E44);
+  static const Color accentOlive = Color(0xFF7A8F37);
+  static const Color accentTeal = Color(0xFF0F766E);
+  static const Color accentAmber = Color(0xFFD97706);
+  static const Color accentTerracotta = Color(0xFFC2410C);
+  static const Color accentSoft = Color(0xFFF1F7F2);
+  static const Color accentSoftBorder = Color(0xFFD6E4D2);
+  static const Color accentDeep = Color(0xFF2F4F3A);
+  static const Color accentMid = Color(0xFF4F6B5A);
+
+  static const List<Color> accentPalette = [
+    accentLeaf,
+    accentOlive,
+    accentAmber,
+    accentTeal,
+    accentTerracotta,
+  ];
 
   static const LinearGradient primaryGradient = LinearGradient(
     colors: [primary, primaryDark],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+  static const LinearGradient accentGradient = LinearGradient(
+    colors: [accentLeaf, accentTeal],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
@@ -43,6 +66,10 @@ class AppTheme {
         onSecondary: Colors.white,
         secondaryContainer: secondary,
         onSecondaryContainer: foreground,
+        tertiary: accentTeal,
+        onTertiary: Colors.white,
+        tertiaryContainer: accentSoft,
+        onTertiaryContainer: accentDeep,
         surface: cardBackground,
         surfaceVariant: muted,
         onSurface: foreground,
