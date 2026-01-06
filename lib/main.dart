@@ -11,6 +11,7 @@ import 'screens/main_navigation.dart';
 import 'theme/app_theme.dart';
 import 'firebase_options.dart';
 
+// App entry point and Firebase setup.
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -21,9 +22,11 @@ Future<void> main() async {
   runApp(const MyApp());
 }
 
+// Root widget that wires providers and navigation.
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
+  // Builds the top-level app widget tree.
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
@@ -62,9 +65,11 @@ class MyApp extends StatelessWidget {
   }
 }
 
+// Simple loading screen while startup completes.
 class _Splash extends StatelessWidget {
   const _Splash();
 
+  // Shows a centered progress indicator.
   @override
   Widget build(BuildContext context) {
     return const Scaffold(

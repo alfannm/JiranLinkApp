@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+// Summary data for a chat conversation.
 class ChatThread {
   final String id;
   final List<String> participants;
@@ -12,6 +13,7 @@ class ChatThread {
   final DateTime lastTimestamp;
   final int unreadCount;
 
+  // Creates a chat thread summary.
   ChatThread({
     required this.id,
     required this.participants,
@@ -25,6 +27,7 @@ class ChatThread {
     required this.unreadCount,
   });
 
+  // Builds a thread summary from a Firestore document.
   factory ChatThread.fromFirestore({
     required DocumentSnapshot<Map<String, dynamic>> doc,
     required String currentUserId,

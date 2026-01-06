@@ -7,9 +7,12 @@ import '../../models/booking.dart';
 import '../../providers/bookings_provider.dart';
 import 'request_details_screen.dart';
 
+// Displays a list of booking requests from other users.
+// Lists booking requests received by the owner.
 class IncomingRequestsScreen extends StatelessWidget {
   const IncomingRequestsScreen({super.key});
 
+  // Builds the incoming requests list.
   @override
   Widget build(BuildContext context) {
     final currentUser = context.watch<AuthProvider>().currentUser;
@@ -63,12 +66,16 @@ class IncomingRequestsScreen extends StatelessWidget {
   }
 }
 
+// Shows a single request with 'Accept' and 'Decline' buttons.
+// Card showing a single request summary.
 class RequestCard extends StatelessWidget {
   final Booking booking;
   final VoidCallback onTap;
 
   const RequestCard({super.key, required this.booking, required this.onTap});
 
+  // Processes the user's choice to accept or reject a request.
+  // Prompts for a response and updates the request.
   Future<void> _handleDecision(BuildContext context,
       {required bool accept}) async {
     final provider = context.read<BookingsProvider>();
@@ -86,6 +93,7 @@ class RequestCard extends StatelessWidget {
     }
   }
 
+  // Builds the request card layout.
   @override
   Widget build(BuildContext context) {
     final dateFormat = DateFormat('MMM d, y');
@@ -266,6 +274,7 @@ class RequestCard extends StatelessWidget {
     );
   }
 
+  // Builds a labeled detail row.
   Widget _buildDetailRow(String label, String value) {
     return Container(
       padding: const EdgeInsets.all(12),
@@ -293,6 +302,7 @@ class RequestCard extends StatelessWidget {
     );
   }
 
+  // Maps a status to a display color.
   Color _getStatusColor(BookingStatus status) {
     switch (status) {
       case BookingStatus.active:
@@ -313,6 +323,8 @@ class RequestCard extends StatelessWidget {
   }
 }
 
+// A popup to add a message when accepting/rejecting.
+// Dialog for accepting or declining a request.
 class _RequestDecisionDialog extends StatefulWidget {
   final bool accept;
 
@@ -322,16 +334,19 @@ class _RequestDecisionDialog extends StatefulWidget {
   State<_RequestDecisionDialog> createState() => _RequestDecisionDialogState();
 }
 
+// State for the decision dialog form.
 class _RequestDecisionDialogState extends State<_RequestDecisionDialog> {
   final _formKey = GlobalKey<FormState>();
   final _controller = TextEditingController();
 
+  // Disposes the text controller.
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
   }
 
+  // Builds the dialog content.
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
@@ -375,9 +390,11 @@ class _RequestDecisionDialogState extends State<_RequestDecisionDialog> {
   }
 }
 
+// Small dot indicator for attention.
 class _AttentionDot extends StatelessWidget {
   const _AttentionDot();
 
+  // Builds the dot widget.
   @override
   Widget build(BuildContext context) {
     return Container(

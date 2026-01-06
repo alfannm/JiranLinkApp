@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'item.dart';
 import 'user.dart';
 
+// Status values for a booking.
 enum BookingStatus {
   pending,
   accepted,
@@ -11,8 +12,10 @@ enum BookingStatus {
   cancelled,
   rejected
 }
+// Status values for payments.
 enum PaymentStatus { pending, paid, failed, refunded }
 
+// Booking data model.
 class Booking {
   final String id;
   final Item item;
@@ -33,6 +36,7 @@ class Booking {
   final String? requestMessage;
   final String? ownerResponseMessage;
 
+  // Creates a booking instance.
   Booking({
     required this.id,
     required this.item,
@@ -56,6 +60,7 @@ class Booking {
         borrowerId = borrowerId ?? borrower.id,
         ownerId = ownerId ?? owner.id;
 
+  // Creates a booking from a JSON map.
   factory Booking.fromJson(Map<String, dynamic> json) {
     final item = Item.fromJson(json['item']);
     return Booking(
@@ -86,6 +91,7 @@ class Booking {
     );
   }
 
+  // Creates a booking from a Firestore document.
   factory Booking.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data() ?? {};
     final item = Item.fromJson(Map<String, dynamic>.from(data['item'] ?? {}));
@@ -119,6 +125,7 @@ class Booking {
     );
   }
 
+  // Converts the booking to a JSON map.
   Map<String, dynamic> toJson() {
     return {
       'itemId': itemId,
@@ -142,12 +149,15 @@ class Booking {
   }
 }
 
+// Display helpers for booking status and actions.
 extension BookingDisplay on Booking {
+  // True when the booking is for a service.
   bool get isServiceBooking =>
       item.type == ItemType.hire ||
       item.category == ItemCategory.services ||
       item.category == ItemCategory.skills;
 
+  // User-facing status label.
   String get statusLabel {
     switch (status) {
       case BookingStatus.pending:
@@ -167,9 +177,11 @@ extension BookingDisplay on Booking {
     }
   }
 
+  // Label for the receive action.
   String get receiveActionLabel =>
       isServiceBooking ? 'Service Received' : 'Item Received';
 
+  // Label for the return action.
   String get returnActionLabel =>
       isServiceBooking ? 'Service Completed' : 'Item Returned';
 }

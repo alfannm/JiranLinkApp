@@ -8,6 +8,7 @@ import '../models/booking.dart';
 import '../models/item.dart';
 import '../models/user.dart' as app;
 
+// Manages bookings for the current user.
 class BookingsProvider extends ChangeNotifier {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
@@ -16,15 +17,18 @@ class BookingsProvider extends ChangeNotifier {
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _borrowerSub;
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _ownerSub;
 
+  // All bookings sorted by newest first.
   List<Booking> get bookings =>
       _bookingMap.values.toList()..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
+  // Bookings made by the current user.
   List<Booking> get myBookings {
     final user = _currentUser;
     if (user == null) return [];
     return bookings.where((b) => _matchesUser(b, user, isOwner: false)).toList();
   }
 
+  // Requests received as the owner.
   List<Booking> get incomingRequests {
     final user = _currentUser;
     if (user == null) return [];
@@ -35,8 +39,10 @@ class BookingsProvider extends ChangeNotifier {
         .toList();
   }
 
+  // Count of pending requests.
   int get pendingRequestsCount => incomingRequests.length;
 
+  // Count of pending owner payments.
   int get pendingOwnerPaymentCount {
     final user = _currentUser;
     if (user == null) return 0;
@@ -48,6 +54,7 @@ class BookingsProvider extends ChangeNotifier {
         .length;
   }
 
+  // Updates the active user and subscribes to bookings.
   void setUser(app.User? user) {
     if (user?.id == _currentUser?.id) return;
     _currentUser = user;
@@ -75,6 +82,7 @@ class BookingsProvider extends ChangeNotifier {
         .listen(_mergeBookings);
   }
 
+  // Merges Firestore snapshots into the local map.
   void _mergeBookings(QuerySnapshot<Map<String, dynamic>> snapshot) {
     for (final doc in snapshot.docs) {
       _bookingMap[doc.id] = Booking.fromFirestore(doc);
@@ -82,6 +90,7 @@ class BookingsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Checks whether a booking belongs to the user.
   bool _matchesUser(Booking booking, app.User user, {required bool isOwner}) {
     final id = isOwner ? booking.ownerId : booking.borrowerId;
     if (id == user.id) return true;
@@ -92,6 +101,7 @@ class BookingsProvider extends ChangeNotifier {
     return bookingEmail.isNotEmpty && bookingEmail == email;
   }
 
+  // Creates a booking request for an item.
   Future<void> createBookingRequest({
     required Item item,
     required app.User borrower,
@@ -132,6 +142,7 @@ class BookingsProvider extends ChangeNotifier {
     await docRef.set(booking.toJson());
   }
 
+  // Accepts a booking request.
   Future<void> acceptRequest(String bookingId, {String? message}) async {
     await _db.collection('bookings').doc(bookingId).update({
       'status': BookingStatus.accepted.toString().split('.').last,
@@ -139,6 +150,7 @@ class BookingsProvider extends ChangeNotifier {
     });
   }
 
+  // Rejects a booking request.
   Future<void> rejectRequest(String bookingId, {String? message}) async {
     await _db.collection('bookings').doc(bookingId).update({
       'status': BookingStatus.rejected.toString().split('.').last,
@@ -146,6 +158,7 @@ class BookingsProvider extends ChangeNotifier {
     });
   }
 
+  // Marks payment as received and updates item availability.
   Future<void> markPaymentReceived(Booking booking) async {
     await _db.collection('bookings').doc(booking.id).update({
       'paymentStatus': PaymentStatus.paid.toString().split('.').last,
@@ -157,12 +170,14 @@ class BookingsProvider extends ChangeNotifier {
     });
   }
 
+  // Marks the item or service as received.
   Future<void> markItemReceived(Booking booking) async {
     await _db.collection('bookings').doc(booking.id).update({
       'status': BookingStatus.active.toString().split('.').last,
     });
   }
 
+  // Marks the item or service as returned.
   Future<void> markItemReturned(Booking booking) async {
     await _db.collection('bookings').doc(booking.id).update({
       'status': BookingStatus.completed.toString().split('.').last,
@@ -173,6 +188,7 @@ class BookingsProvider extends ChangeNotifier {
     });
   }
 
+  // Calculates the billable units for a booking.
   static int calculateUnits({
     required DateTime startDate,
     required DateTime endDate,
@@ -198,6 +214,7 @@ class BookingsProvider extends ChangeNotifier {
     }
   }
 
+  // Cleans up Firestore subscriptions.
   @override
   void dispose() {
     _borrowerSub?.cancel();

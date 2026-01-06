@@ -8,11 +8,14 @@ import '../../providers/auth_provider.dart';
 import '../../providers/bookings_provider.dart';
 import '../../theme/app_theme.dart';
 
+// Displays details of an incoming booking request for the owner.
+// Detailed view for an incoming request.
 class RequestDetailsScreen extends StatelessWidget {
   final Booking booking;
 
   const RequestDetailsScreen({super.key, required this.booking});
 
+  // Builds the request details layout.
   @override
   Widget build(BuildContext context) {
     final dateFormat = DateFormat('MMM d, y');
@@ -110,6 +113,8 @@ class RequestDetailsScreen extends StatelessWidget {
     );
   }
 
+  // Button for the owner to confirm they received the item back (or service ended).
+  // Builds the bottom action for confirming return.
   Widget _buildReturnAction(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -153,6 +158,7 @@ class RequestDetailsScreen extends StatelessWidget {
     );
   }
 
+  // Builds the item summary card.
   Widget _buildItemCard() {
     return Container(
       padding: const EdgeInsets.all(12),
@@ -202,6 +208,7 @@ class RequestDetailsScreen extends StatelessWidget {
     );
   }
 
+  // Builds the borrower info card.
   Widget _buildBorrowerCard() {
     final borrower = booking.borrower;
     final fallbackLetter =
@@ -249,6 +256,7 @@ class RequestDetailsScreen extends StatelessWidget {
     );
   }
 
+  // Builds the status chip.
   Widget _buildStatusChip(Color statusColor) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -267,6 +275,7 @@ class RequestDetailsScreen extends StatelessWidget {
     );
   }
 
+  // Builds the payment pending notice.
   Widget _buildPaymentPendingCard() {
     return Container(
       padding: const EdgeInsets.all(12),
@@ -307,6 +316,7 @@ class RequestDetailsScreen extends StatelessWidget {
     );
   }
 
+  // Builds a labeled detail row.
   Widget _buildInfoRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -333,6 +343,7 @@ class RequestDetailsScreen extends StatelessWidget {
     );
   }
 
+  // Builds a price row for the summary.
   Widget _buildPriceRow(String label, String value, {bool highlight = false}) {
     final valueStyle = TextStyle(
       color: highlight ? AppTheme.primary : AppTheme.foreground,
@@ -353,6 +364,7 @@ class RequestDetailsScreen extends StatelessWidget {
     );
   }
 
+  // Maps booking status to a display color.
   Color _getStatusColor(BookingStatus status) {
     switch (status) {
       case BookingStatus.active:

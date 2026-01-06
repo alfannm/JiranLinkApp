@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../theme/app_theme.dart';
 
+// Handles both user Login and Registration.
+// Login and registration screen.
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
 
@@ -10,18 +12,19 @@ class AuthScreen extends StatefulWidget {
   State<AuthScreen> createState() => _AuthScreenState();
 }
 
+// State for login and registration flows.
 class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
   bool _isLogin = true;
   bool _isLoading = false;
   int _slideDirection = 1;
 
-  // Login form
+  // Login form state.
   final _loginKey = GlobalKey<FormState>();
   final _loginEmail = TextEditingController();
   final _loginPassword = TextEditingController();
   bool _loginObscure = true;
 
-  // Register form
+  // Registration form state.
   final _registerKey = GlobalKey<FormState>();
   final _regName = TextEditingController();
   final _regEmail = TextEditingController();
@@ -30,6 +33,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
   bool _regObscure = true;
   bool _regConfirmObscure = true;
 
+  // Disposes text controllers.
   @override
   void dispose() {
     _loginEmail.dispose();
@@ -42,6 +46,8 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
     super.dispose();
   }
 
+  // Toggles between the Login form and Register form.
+  // Switches between login and register tabs.
   void _switchTab(bool toLogin) {
     if (_isLogin == toLogin) return;
     setState(() {
@@ -50,6 +56,8 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
     });
   }
 
+  // Starts the Google Sign-In process.
+  // Starts Google sign-in.
   Future<void> _handleGoogle(BuildContext context) async {
     setState(() => _isLoading = true);
     final auth = context.read<AuthProvider>();
@@ -67,6 +75,8 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
     }
   }
 
+  // Logs in with email/password.
+  // Handles email login.
   Future<void> _handleLoginEmail(BuildContext context) async {
     final valid = _loginKey.currentState?.validate() ?? false;
     if (!valid) return;
@@ -90,6 +100,8 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
     }
   }
 
+  // Registers a new account with name, email, and password.
+  // Handles email registration.
   Future<void> _handleRegisterEmail(BuildContext context) async {
     final valid = _registerKey.currentState?.validate() ?? false;
     if (!valid) return;
@@ -114,6 +126,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
     }
   }
 
+  // Builds the auth screen layout.
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -322,6 +335,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
     );
   }
 
+  // Login form fields and submit button.
   Widget _loginForm(BuildContext context) {
     return Form(
       key: _loginKey,
@@ -380,6 +394,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
     );
   }
 
+  // Registration form fields and submit button.
   Widget _registerForm(BuildContext context) {
     return Form(
       key: _registerKey,
@@ -469,6 +484,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
     );
   }
 
+  // Shared text field builder.
   Widget _textField({
     required TextEditingController controller,
     required String label,
@@ -517,6 +533,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
     );
   }
 
+  // Single segment button for the login/register toggle.
   Widget _buildToggleButton(String label, bool isActive, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
@@ -544,6 +561,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
     );
   }
 
+  // Segmented toggle between login and register.
   Widget _buildSegmentedToggle() {
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -606,6 +624,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
   }
 }
 
+// Switches between login and register content.
 class _AuthContent extends StatelessWidget {
   const _AuthContent({
     super.key,
@@ -618,6 +637,7 @@ class _AuthContent extends StatelessWidget {
   final Widget loginForm;
   final Widget registerForm;
 
+  // Builds the content section.
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -644,12 +664,14 @@ class _AuthContent extends StatelessWidget {
   }
 }
 
+// Decorative background glow.
 class _GlowBlob extends StatelessWidget {
   const _GlowBlob({required this.size, required this.color});
 
   final double size;
   final Color color;
 
+  // Builds the glow shape.
   @override
   Widget build(BuildContext context) {
     return Container(

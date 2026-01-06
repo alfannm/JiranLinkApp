@@ -7,9 +7,11 @@ import '../../providers/items_provider.dart';
 import '../item_details/item_detail_screen.dart';
 import '../main_navigation.dart';
 
+// Lists the user's favorite items.
 class FavoritesScreen extends StatelessWidget {
   const FavoritesScreen({super.key});
 
+  // Builds the favorites screen layout.
   @override
   Widget build(BuildContext context) {
     final favorites = context.watch<FavoritesProvider>();

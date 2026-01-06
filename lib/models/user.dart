@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+// User profile data.
 class User {
   final String id;
   final String name;
@@ -9,6 +10,7 @@ class User {
   final String? avatar;
   final DateTime joinDate;
 
+  // Creates a user profile instance.
   User({
     required this.id,
     required this.name,
@@ -19,6 +21,7 @@ class User {
     required this.joinDate,
   });
 
+  // Creates a user from a JSON map.
   factory User.fromJson(Map<String, dynamic> json) {
     final joinDateRaw = json['joinDate'];
     DateTime joinDate;
@@ -43,6 +46,7 @@ class User {
     );
   }
 
+  // Creates a user from a Firestore document.
   factory User.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data() ?? {};
     return User(
@@ -56,6 +60,7 @@ class User {
     );
   }
 
+  // Converts the user to a JSON map.
   Map<String, dynamic> toJson() {
     return {
       'id': id,

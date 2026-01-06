@@ -10,11 +10,13 @@ import 'post_item/post_item_screen.dart';
 import 'messages/messages_screen.dart';
 import 'profile/profile_screen.dart';
 
+// Main tab navigation scaffold.
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key, this.initialIndex = 0});
 
   final int initialIndex;
 
+  // Finds the nearest navigation state in the tree.
   static MainNavigationState? of(BuildContext context) {
     return context.findAncestorStateOfType<MainNavigationState>();
   }
@@ -23,15 +25,18 @@ class MainNavigation extends StatefulWidget {
   State<MainNavigation> createState() => MainNavigationState();
 }
 
+// State for current tab selection and navigation.
 class MainNavigationState extends State<MainNavigation> {
   late int _currentIndex;
 
+  // Initializes the current tab.
   @override
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
   }
 
+  // Switches the visible tab.
   void switchToTab(int index) {
     setState(() {
       _currentIndex = index;
@@ -46,6 +51,7 @@ class MainNavigationState extends State<MainNavigation> {
     const ProfileScreen(),
   ];
 
+  // Builds the navigation scaffold and bottom bar.
   @override
   Widget build(BuildContext context) {
     final unreadMessages = context.watch<MessagesProvider>().unreadCount;

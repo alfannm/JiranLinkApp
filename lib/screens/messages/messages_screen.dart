@@ -6,9 +6,11 @@ import '../../providers/messages_provider.dart';
 import '../../theme/app_theme.dart';
 import 'chat_screen.dart';
 
+// Lists message threads for the user.
 class MessagesScreen extends StatelessWidget {
   const MessagesScreen({super.key});
 
+  // Builds the messages list.
   @override
   Widget build(BuildContext context) {
     final threads = context.watch<MessagesProvider>().threads;

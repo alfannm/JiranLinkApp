@@ -9,6 +9,7 @@ import 'package:image_picker/image_picker.dart';
 import '../models/item.dart';
 import '../services/location_service.dart';
 
+// Items collection provider with filters and storage support.
 class ItemsProvider extends ChangeNotifier {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   final FirebaseStorage _storage = FirebaseStorage.instance;
@@ -16,33 +17,42 @@ class ItemsProvider extends ChangeNotifier {
   List<Item> _items = [];
   String _searchQuery = '';
   ItemCategory? _selectedCategory;
-  double? _radiusFilter; // in kilometers
+  // Search radius in kilometers.
+  double? _radiusFilter;
   double? _userLatitude;
   double? _userLongitude;
 
   final LocationService _locationService = LocationService();
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _itemsSub;
 
+  // Starts listening to item changes.
   ItemsProvider() {
     _listenToItems();
   }
 
+  // Cleans up Firestore subscriptions.
   @override
   void dispose() {
     _itemsSub?.cancel();
     super.dispose();
   }
 
+  // Items filtered by current search and filters.
   List<Item> get items => _filteredItems();
+  // All items from the backend.
   List<Item> get allItems => _items;
+  // Selected category filter.
   ItemCategory? get selectedCategory => _selectedCategory;
+  // Current search query.
   String get searchQuery => _searchQuery;
+  // User latitude for distance filtering.
   double? get userLatitude => _userLatitude;
+  // User longitude for distance filtering.
   double? get userLongitude => _userLongitude;
+  // Current radius filter.
   double? get radiusFilter => _radiusFilter;
 
-  /// Ask for permission + fetch device location, then store it.
-  /// Returns true if a location was obtained.
+  // Detects device location and stores it for filtering.
   Future<bool> detectAndSetUserLocation() async {
     try {
       final pos = await _locationService.getCurrentPosition();
@@ -55,21 +65,25 @@ class ItemsProvider extends ChangeNotifier {
     }
   }
 
+  // Updates the search query.
   void setSearchQuery(String query) {
     _searchQuery = query;
     notifyListeners();
   }
 
+  // Updates the selected category filter.
   void setCategory(ItemCategory? category) {
     _selectedCategory = category;
     notifyListeners();
   }
 
+  // Updates the distance filter.
   void setRadiusFilter(double? radius) {
     _radiusFilter = radius;
     notifyListeners();
   }
 
+  // Subscribes to item updates from Firestore.
   void _listenToItems() {
     _itemsSub?.cancel();
     _itemsSub = _db
@@ -82,6 +96,7 @@ class ItemsProvider extends ChangeNotifier {
     });
   }
 
+  // Uploads images and returns download URLs.
   Future<List<String>> _uploadImages({
     required String itemId,
     required List<XFile> images,
@@ -99,6 +114,7 @@ class ItemsProvider extends ChangeNotifier {
     return urls;
   }
 
+  // Creates a new item document and uploads images.
   Future<void> createItem({
     required Item item,
     required List<XFile> images,
@@ -112,6 +128,7 @@ class ItemsProvider extends ChangeNotifier {
     await docRef.set(itemData);
   }
 
+  // Updates an existing item document and merges images.
   Future<void> updateItem({
     required Item item,
     required List<XFile> newImages,
@@ -126,21 +143,23 @@ class ItemsProvider extends ChangeNotifier {
     await docRef.set(itemData);
   }
 
+  // Deletes an item and attempts to remove its images.
   Future<void> deleteItem(Item item) async {
     await _db.collection('items').doc(item.id).delete();
     for (final imageUrl in item.images) {
       try {
         await _storage.refFromURL(imageUrl).delete();
       } catch (_) {
-        // Ignore delete failures for non-storage URLs.
+        // Skip images that cannot be deleted.
       }
     }
   }
 
+  // Applies search, category, and distance filters.
   List<Item> _filteredItems() {
     var filtered = List<Item>.from(_items);
 
-    // Filter by search query
+    // Search filter.
     if (_searchQuery.isNotEmpty) {
       filtered = filtered.where((item) {
         return item.title.toLowerCase().contains(_searchQuery.toLowerCase()) ||
@@ -148,13 +167,13 @@ class ItemsProvider extends ChangeNotifier {
       }).toList();
     }
 
-    // Filter by category
+    // Category filter.
     if (_selectedCategory != null) {
       filtered =
           filtered.where((item) => item.category == _selectedCategory).toList();
     }
 
-    // Filter by radius
+    // Distance filter.
     if (_radiusFilter != null &&
         _userLatitude != null &&
         _userLongitude != null) {
@@ -172,14 +191,18 @@ class ItemsProvider extends ChangeNotifier {
     return filtered;
   }
 
+  // Calculates distance between two coordinates in kilometers.
   double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
-    const p = 0.017453292519943295; // Math.PI / 180
+    // Degrees to radians factor.
+    const p = 0.017453292519943295;
     final a = 0.5 -
         cos((lat2 - lat1) * p) / 2 +
         cos(lat1 * p) * cos(lat2 * p) * (1 - cos((lon2 - lon1) * p)) / 2;
-    return 12742 * asin(sqrt(a)); // 2 * R; R = 6371 km
+    // Earth diameter in km (2 * 6371).
+    return 12742 * asin(sqrt(a));
   }
 
+  // Returns a few nearby available items.
   List<Item> getNearbyItems(String district, int limit) {
     return _items
         .where((item) => item.district == district && item.available)
@@ -187,10 +210,12 @@ class ItemsProvider extends ChangeNotifier {
         .toList();
   }
 
+  // Returns a few available items for featured sections.
   List<Item> getFeaturedItems(int limit) {
     return _items.where((item) => item.available).take(limit).toList();
   }
 
+  // Finds an item by id.
   Item? getItemById(String id) {
     try {
       return _items.firstWhere((item) => item.id == id);

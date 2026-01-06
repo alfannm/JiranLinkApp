@@ -8,9 +8,11 @@ import '../item_details/item_detail_screen.dart';
 import '../../models/item.dart';
 import '../post_item/post_item_screen.dart';
 
+// Shows listings created by the current user.
 class MyListingsScreen extends StatelessWidget {
   const MyListingsScreen({super.key});
 
+  // Builds the listings screen layout.
   @override
   Widget build(BuildContext context) {
     final currentUser = context.watch<AuthProvider>().currentUser;

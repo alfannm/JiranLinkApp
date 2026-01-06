@@ -9,6 +9,7 @@ import '../../theme/app_theme.dart';
 import '../item_details/item_detail_screen.dart';
 import '../main_navigation.dart';
 
+// Home feed with featured and nearby items.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -16,12 +17,14 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
+// State for location, quick links, and lists.
 class _HomeScreenState extends State<HomeScreen>
     with WidgetsBindingObserver, SingleTickerProviderStateMixin {
   late final ScrollController _quickLinksController;
   late final AnimationController _quickLinksHintController;
   bool _showQuickLinksHint = true;
 
+  // Sets up controllers and location refresh.
   @override
   void initState() {
     super.initState();
@@ -45,6 +48,7 @@ class _HomeScreenState extends State<HomeScreen>
     });
   }
 
+  // Disposes controllers and observers.
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
@@ -53,6 +57,7 @@ class _HomeScreenState extends State<HomeScreen>
     super.dispose();
   }
 
+  // Hides the quick links hint once the list moves.
   void _handleQuickLinksScroll() {
     if (!_showQuickLinksHint) return;
     if (_quickLinksController.position.pixels <= 8) return;
@@ -62,6 +67,7 @@ class _HomeScreenState extends State<HomeScreen>
     _quickLinksHintController.stop();
   }
 
+  // Refreshes location when the app resumes.
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
@@ -69,6 +75,7 @@ class _HomeScreenState extends State<HomeScreen>
     }
   }
 
+  // Builds the home screen layout.
   @override
   Widget build(BuildContext context) {
     final itemsProvider = context.watch<ItemsProvider>();
@@ -104,7 +111,7 @@ class _HomeScreenState extends State<HomeScreen>
       backgroundColor: AppTheme.background,
       body: CustomScrollView(
         slivers: [
-          // Custom Green Header
+          // Header section.
           SliverToBoxAdapter(
             child: Container(
               padding: const EdgeInsets.fromLTRB(24, 60, 24, 24),
@@ -136,7 +143,7 @@ class _HomeScreenState extends State<HomeScreen>
                   ),
                   const SizedBox(height: 16),
 
-                  // Location Pill
+                  // Location pill.
                   Row(
                     children: [
                       Container(
@@ -222,7 +229,7 @@ class _HomeScreenState extends State<HomeScreen>
                   ),
                   const SizedBox(height: 24),
 
-                  // Search Bar
+                  // Search bar.
                   Container(
                     decoration: BoxDecoration(
                       color: AppTheme.cardBackground,
@@ -264,7 +271,7 @@ class _HomeScreenState extends State<HomeScreen>
             ),
           ),
 
-          // Quick Links
+          // Quick links.
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
@@ -380,7 +387,7 @@ class _HomeScreenState extends State<HomeScreen>
             ),
           ),
 
-          // Nearby Items
+          // Nearby items.
           if (nearbyItems.isNotEmpty) ...[
             SliverToBoxAdapter(
               child: Padding(
@@ -452,7 +459,7 @@ class _HomeScreenState extends State<HomeScreen>
             ),
           ],
 
-          // Featured Items
+          // Featured items.
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 24, 16, 12),
@@ -522,7 +529,7 @@ class _HomeScreenState extends State<HomeScreen>
             ),
           ),
 
-          // Kampung Spirit Banner
+          // Community banner.
           SliverToBoxAdapter(
             child: Container(
               margin: const EdgeInsets.fromLTRB(16, 32, 16, 40),
@@ -573,6 +580,7 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
+  // Builds a quick link category chip.
   Widget _buildCategoryItem(
     BuildContext context,
     IconData icon,
@@ -627,6 +635,7 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
+  // Builds a small trust badge label.
   Widget _buildTrustBadge(String text) {
     return Row(
       children: [

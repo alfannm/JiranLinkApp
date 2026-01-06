@@ -8,14 +8,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import '../models/user.dart' as app;
 import '../services/location_service.dart';
 
-/// Real authentication provider (FirebaseAuth + GoogleSignIn).
-///
-/// - Keeps [_currentUser] in sync with FirebaseAuth authStateChanges.
-///
-/// IMPORTANT:
-/// You MUST configure Firebase in your Flutter app before this works:
-/// - Android: android/app/google-services.json + apply google-services plugin
-/// - iOS: ios/Runner/GoogleService-Info.plist
+// Authentication state and user profile provider.
 class AuthProvider extends ChangeNotifier {
   final fb.FirebaseAuth _auth = fb.FirebaseAuth.instance;
   final FirebaseFirestore _db = FirebaseFirestore.instance;
@@ -30,20 +23,28 @@ class AuthProvider extends ChangeNotifier {
   app.User? _currentUser;
   StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _userSub;
 
+  // True while the provider is bootstrapping.
   bool get isInitializing => _isInitializing;
+  // True when a user is signed in.
   bool get isAuthenticated => _currentUser != null;
+  // True while location lookup is in progress.
   bool get isUpdatingLocation => _isUpdatingLocation;
+  // Current signed-in user, if available.
   app.User? get currentUser => _currentUser;
+  // Error message from location lookup.
   String? get locationError => _locationError;
+  // Current detected or saved district label.
   String get locationDistrict =>
       (_detectedDistrict != null && _detectedDistrict!.isNotEmpty)
           ? _detectedDistrict!
           : (_currentUser?.district ?? 'Unknown');
 
+  // Initializes auth and user listeners.
   AuthProvider() {
     _init();
   }
 
+  // Connects to Firebase auth and user documents.
   Future<void> _init() async {
     final existingUser = _auth.currentUser;
     if (existingUser != null) {
@@ -51,7 +52,7 @@ class AuthProvider extends ChangeNotifier {
       _bindUserDoc(existingUser);
     }
 
-    // Listen to auth changes
+    // Subscribe to auth changes.
     _auth.authStateChanges().listen((fb.User? user) async {
       if (user == null) {
         _userSub?.cancel();
@@ -69,6 +70,7 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Updates the user district from device location.
   Future<void> updateLocationDistrict({bool force = false}) async {
     if (_isUpdatingLocation) return;
     if (!force && _lastLocationCheck != null) {
@@ -112,11 +114,11 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  /// Google sign-in using FirebaseAuth.
+  // Signs in with Google.
   Future<void> signInWithGoogle() async {
     final GoogleSignInAccount? gUser = await _googleSignIn.signIn();
     if (gUser == null) {
-      // User cancelled
+      // Stop if the sign-in flow was dismissed.
       return;
     }
     final GoogleSignInAuthentication gAuth = await gUser.authentication;
@@ -134,7 +136,7 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  /// Email/password sign-in using FirebaseAuth.
+  // Signs in with email and password.
   Future<void> signInWithEmail(String email, String password) async {
     await _auth.signInWithEmailAndPassword(email: email, password: password);
     final user = _auth.currentUser;
@@ -144,7 +146,7 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  /// Email/password registration using FirebaseAuth.
+  // Creates a new account with email and password.
   Future<void> registerWithEmail(String name, String email, String password) async {
     final cred = await _auth.createUserWithEmailAndPassword(
       email: email,
@@ -163,12 +165,12 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  // Signs out of the app and clears local state.
   Future<void> signOut() async {
-    // GoogleSignIn needs explicit signOut too.
+    // Sign out of Google if it was used.
     try {
       await _googleSignIn.signOut();
     } catch (_) {
-      // ignore
     }
     await _auth.signOut();
     _userSub?.cancel();
@@ -179,6 +181,7 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Ensures a user document exists in Firestore.
   Future<void> _ensureUserDoc(fb.User user) async {
     final docRef = _db.collection('users').doc(user.uid);
     final snap = await docRef.get();
@@ -197,6 +200,7 @@ class AuthProvider extends ChangeNotifier {
     await docRef.set(newUser.toJson());
   }
 
+  // Subscribes to the current user's Firestore document.
   void _bindUserDoc(fb.User user) {
     _userSub?.cancel();
     _userSub = _db.collection('users').doc(user.uid).snapshots().listen((snap) {

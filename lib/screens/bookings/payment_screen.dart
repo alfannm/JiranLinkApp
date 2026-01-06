@@ -7,6 +7,7 @@ import '../../models/booking.dart';
 import '../../providers/bookings_provider.dart';
 import '../../theme/app_theme.dart';
 
+// Mock payment flow for a booking.
 class PaymentScreen extends StatefulWidget {
   final Booking booking;
 
@@ -16,14 +17,17 @@ class PaymentScreen extends StatefulWidget {
   State<PaymentScreen> createState() => _PaymentScreenState();
 }
 
+// State for payment selection and submission.
 class _PaymentScreenState extends State<PaymentScreen> {
   int _selectedMethod = 0;
   bool _processing = false;
 
+  // Formats a value as currency.
   String _formatCurrency(double value) {
     return 'RM ${value.toStringAsFixed(2)}';
   }
 
+  // Submits the mock payment and updates booking status.
   Future<void> _submitPayment() async {
     if (_processing) return;
     final bookingsProvider = context.read<BookingsProvider>();
@@ -48,6 +52,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     }
   }
 
+  // Builds the payment screen layout.
   @override
   Widget build(BuildContext context) {
     final booking = widget.booking;
@@ -160,6 +165,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
+  // Builds a security message banner.
   Widget _buildSecurityBanner() {
     return Container(
       padding: const EdgeInsets.all(12),
@@ -183,6 +189,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
+  // Builds the item summary card.
   Widget _buildItemSummary(Booking booking, String dateLabel) {
     return Container(
       padding: const EdgeInsets.all(12),
@@ -251,6 +258,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
+  // Builds a labeled detail row.
   Widget _buildDetailRow(IconData icon, String label, String value) {
     return Row(
       children: [
@@ -274,6 +282,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
+  // Builds a section title.
   Widget _buildSectionTitle(String title) {
     return Text(
       title,
@@ -281,6 +290,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
+  // Builds the price summary card.
   Widget _buildPriceSummary({
     required double rentAmount,
     required double depositAmount,
@@ -320,6 +330,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
+  // Builds a price row for the summary.
   Widget _buildPriceRow(String label, String value, {bool highlight = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -339,6 +350,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
+  // Builds the payment method selection.
   Widget _buildPaymentMethods() {
     return Container(
       padding: const EdgeInsets.all(12),
@@ -382,6 +394,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
+  // Builds a single payment option row.
   Widget _buildPaymentOption({
     required int value,
     required IconData icon,
@@ -428,6 +441,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
+  // Builds the saved card preview.
   Widget _buildSavedCardRow() {
     return Container(
       margin: const EdgeInsets.only(left: 40, top: 8, bottom: 12),
@@ -471,6 +485,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
+  // Builds the payment process timeline.
   Widget _buildProcessTimeline() {
     return Container(
       padding: const EdgeInsets.all(12),
@@ -507,6 +522,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
+  // Builds a timeline row.
   Widget _buildTimelineRow(
     IconData icon,
     String title,
@@ -544,6 +560,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
+  // Builds the protection highlights card.
   Widget _buildProtectionCard() {
     return Container(
       padding: const EdgeInsets.all(12),
@@ -576,6 +593,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
+  // Builds a protection detail row.
   Widget _buildProtectionRow(
     IconData icon,
     String title,
@@ -609,6 +627,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
+  // Builds the receipt and notification card.
   Widget _buildReceiptCard(String email) {
     final receiptLine = email.isNotEmpty
         ? 'Receipt will be sent to $email.'

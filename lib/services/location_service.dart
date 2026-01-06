@@ -1,12 +1,9 @@
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 
+// Location helpers for reading the device position and district.
 class LocationService {
-  /// Requests location permission (if needed) and returns the
-  /// current device position.
-  ///
-  /// Throws an exception with a human-readable message if
-  /// permission/service is not available.
+  // Requests permission and returns the current device position.
   Future<Position> getCurrentPosition() async {
     final serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
@@ -31,7 +28,7 @@ class LocationService {
     );
   }
 
-  /// Returns a best-effort district/locality name for the current location.
+  // Returns a best-effort district name for the current location.
   Future<String> getCurrentDistrict() async {
     final position = await getCurrentPosition();
     final placemarks = await placemarkFromCoordinates(
@@ -42,9 +39,9 @@ class LocationService {
     return getDistrictFromPlacemark(placemarks.first);
   }
 
-  /// Helper to extract district from Placemark with custom logic
+  // Extracts a district name from a Placemark.
   String getDistrictFromPlacemark(Placemark place) {
-    // Special handling for Tok Jembal -> Kuala Nerus
+    // Map known local names to the district.
     final subLocality = place.subLocality?.trim() ?? '';
     if (subLocality.toLowerCase().contains('tok jembal')) {
       return 'Kuala Nerus';
@@ -53,13 +50,13 @@ class LocationService {
     final subAdmin = place.subAdministrativeArea?.trim() ?? '';
     final locality = place.locality?.trim() ?? '';
 
-    // Fix for Kuala Nerus being inside Kuala Terengganu district in some datasets
+    // Handle dataset variations for Kuala Nerus.
     if (subAdmin.toLowerCase() == 'kuala terengganu' && 
         locality.toLowerCase() == 'kuala nerus') {
       return 'Kuala Nerus';
     }
 
-    // Default fallback priority
+    // Fallback order for district name.
     return (subAdmin.isNotEmpty ? subAdmin : 
             locality.isNotEmpty ? locality : 
             subLocality.isNotEmpty ? subLocality : 
@@ -67,6 +64,7 @@ class LocationService {
             '').trim();
   }
 
+  // Looks up a placemark for a given position.
   Future<Placemark?> getPlacemarkFromPosition(Position position) async {
     try {
       final placemarks = await placemarkFromCoordinates(

@@ -11,6 +11,7 @@ import '../../providers/auth_provider.dart';
 import '../../models/item.dart';
 import '../../services/location_service.dart';
 
+// State and district options for the location form.
 const Map<String, List<String>> malaysiaLocations = {
   "Johor": ["Batu Pahat", "Johor Bahru", "Kluang", "Kota Tinggi", "Kulai", "Mersing", "Muar", "Pontian", "Segamat", "Tangkak"],
   "Kedah": ["Baling", "Bandar Baharu", "Kota Setar", "Kuala Muda", "Kubang Pasu", "Kulim", "Langkawi", "Padang Terap", "Pendang", "Pokok Sena", "Sik", "Yan"],
@@ -28,6 +29,7 @@ const Map<String, List<String>> malaysiaLocations = {
   "Wilayah Persekutuan": ["Kuala Lumpur", "Labuan", "Putrajaya"]
 };
 
+// Screen for creating or editing a listing.
 class PostItemScreen extends StatefulWidget {
   final Item? existingItem;
 
@@ -37,6 +39,7 @@ class PostItemScreen extends StatefulWidget {
   State<PostItemScreen> createState() => _PostItemScreenState();
 }
 
+// State for the listing form, photos, and location.
 class _PostItemScreenState extends State<PostItemScreen> {
   static const int _maxPhotos = 5;
   final _formKey = GlobalKey<FormState>();
@@ -66,15 +69,20 @@ class _PostItemScreenState extends State<PostItemScreen> {
   String? _autoDetectedState;
   String? _autoDetectedDistrict;
 
+  // True when editing an existing item.
   bool get _isEditing => widget.existingItem != null;
+  // Total number of photos selected or existing.
   int get _totalImages => _existingImageUrls.length + _images.length;
+  // True when more photos can be added.
   bool get _canAddMorePhotos => _totalImages < _maxPhotos;
 
+  // Capitalizes the first character of a label.
   String _capitalizeFirst(String value) {
     if (value.isEmpty) return value;
     return value[0].toUpperCase() + value.substring(1).toLowerCase();
   }
 
+  // Builds an image widget for web or mobile.
   Widget _buildImage(
     XFile image, {
     double? width,
@@ -97,6 +105,7 @@ class _PostItemScreenState extends State<PostItemScreen> {
     );
   }
 
+  // Tile that opens the photo picker.
   Widget _buildAddPhotoTile({double size = 120}) {
     return GestureDetector(
       onTap: _showImageSourceSheet,
@@ -126,6 +135,7 @@ class _PostItemScreenState extends State<PostItemScreen> {
     );
   }
 
+  // Shows a full screen preview for a picked image.
   Future<void> _showImagePreview(XFile image) async {
     await showGeneralDialog<void>(
       context: context,
@@ -161,12 +171,14 @@ class _PostItemScreenState extends State<PostItemScreen> {
     );
   }
 
+  // Alerts the user when the photo limit is reached.
   void _showPhotoLimitMessage() {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('You can add up to 5 photos.')),
     );
   }
 
+  // Picks multiple images from the gallery.
   Future<void> _pickFromGallery() async {
     final files = await _picker.pickMultiImage(imageQuality: 75);
     if (!mounted) return;
@@ -188,6 +200,7 @@ class _PostItemScreenState extends State<PostItemScreen> {
     });
   }
 
+  // Captures a photo from the camera.
   Future<void> _takePhoto() async {
     if (_totalImages >= _maxPhotos) {
       _showPhotoLimitMessage();
@@ -206,6 +219,7 @@ class _PostItemScreenState extends State<PostItemScreen> {
     });
   }
 
+  // Shows a bottom sheet to choose photo source.
   Future<void> _showImageSourceSheet() async {
     if (_totalImages >= _maxPhotos) {
       _showPhotoLimitMessage();
@@ -249,6 +263,7 @@ class _PostItemScreenState extends State<PostItemScreen> {
     );
   }
 
+  // Shows a full screen preview for a network image.
   Future<void> _showNetworkImagePreview(String imageUrl) async {
     await showGeneralDialog<void>(
       context: context,
@@ -284,6 +299,7 @@ class _PostItemScreenState extends State<PostItemScreen> {
     );
   }
 
+  // Initializes form values when editing.
   @override
   void initState() {
     super.initState();
@@ -311,6 +327,7 @@ class _PostItemScreenState extends State<PostItemScreen> {
     _existingImageUrls.addAll(item.images);
   }
 
+  // Disposes text controllers.
   @override
   void dispose() {
     _titleController.dispose();
@@ -322,12 +339,13 @@ class _PostItemScreenState extends State<PostItemScreen> {
     super.dispose();
   }
 
+  // Uses device location to fill state and district.
   Future<void> _detectLocation() async {
     try {
-      // 1. Get position once
+      // Read the current position.
       final pos = await _locationService.getCurrentPosition();
-      
-      // 2. Get placemark from that position
+
+      // Look up address details for the position.
       final placemark = await _locationService.getPlacemarkFromPosition(pos);
       
       if (!mounted) return;
@@ -336,7 +354,7 @@ class _PostItemScreenState extends State<PostItemScreen> {
         _longitude = pos.longitude;
         
         if (placemark != null) {
-          // 3. Detect State
+          // Choose a state name from the placemark.
           final detectedState = placemark.administrativeArea?.trim();
           if (detectedState != null && detectedState.isNotEmpty) {
             final matchedKey = malaysiaLocations.keys.firstWhere(
@@ -355,7 +373,7 @@ class _PostItemScreenState extends State<PostItemScreen> {
             _autoDetectedState = null;
           }
 
-          // 4. Detect District using the improved service logic
+          // Choose a district name from the placemark.
           final candidateDistrict = _locationService.getDistrictFromPlacemark(placemark);
 
           if (candidateDistrict.isNotEmpty) {
@@ -378,6 +396,7 @@ class _PostItemScreenState extends State<PostItemScreen> {
     }
   }
 
+  // Validates and submits the listing.
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) return;
     final scaffoldMessenger = ScaffoldMessenger.of(context);
@@ -417,17 +436,16 @@ class _PostItemScreenState extends State<PostItemScreen> {
     setState(() => _isSubmitting = true);
 
     if (_latitude == null || _longitude == null) {
-      // Try to get location silently if not set, or just default to 0
+      // Best-effort location lookup when missing.
       try {
         final pos = await _locationService.getCurrentPosition();
         _latitude = pos.latitude;
         _longitude = pos.longitude;
       } catch (e) {
-        // Ignore if fails, just use 0
       }
     }
 
-    // Prepare data based on type
+    // Calculate price and deposit values.
     double finalPrice = 0;
     double? finalDeposit;
 
@@ -511,9 +529,10 @@ class _PostItemScreenState extends State<PostItemScreen> {
     }
   }
 
+  // Builds the listing form UI.
   @override
   Widget build(BuildContext context) {
-    // Visibility flags
+    // Derived display flags.
     final isServiceCategory = _selectedCategory == ItemCategory.skills ||
         _selectedCategory == ItemCategory.services;
     final showPrice = isServiceCategory ||
@@ -559,7 +578,7 @@ class _PostItemScreenState extends State<PostItemScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Image Picker Placeholder
+              // Photo picker.
               !hasImages
                   ? GestureDetector(
                       onTap: _showImageSourceSheet,
@@ -674,7 +693,7 @@ class _PostItemScreenState extends State<PostItemScreen> {
                     ),
               const SizedBox(height: 24),
 
-              // Title
+              // Title field.
               TextFormField(
                 controller: _titleController,
                 decoration: const InputDecoration(
@@ -691,7 +710,7 @@ class _PostItemScreenState extends State<PostItemScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Description
+              // Description field.
               TextFormField(
                 controller: _descriptionController,
                 maxLines: 4,
@@ -709,7 +728,7 @@ class _PostItemScreenState extends State<PostItemScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Category & Type Row
+              // Category and type selection.
               Row(
                 children: [
                   Expanded(
@@ -772,7 +791,6 @@ class _PostItemScreenState extends State<PostItemScreen> {
                             if (value != null) {
                               _selectedType = value;
                             }
-                            // Clear validations or reset fields if needed
                           });
                         },
                       ),
@@ -783,7 +801,7 @@ class _PostItemScreenState extends State<PostItemScreen> {
               const SizedBox(height: 16),
               
               if (!isServiceCategory) ...[
-                // Condition
+                // Condition selection.
                 DropdownButtonFormField<ItemCondition>(
                   initialValue: _selectedCondition,
                   decoration: const InputDecoration(
@@ -791,7 +809,7 @@ class _PostItemScreenState extends State<PostItemScreen> {
                     border: OutlineInputBorder(),
                   ),
                   items: ItemCondition.values.map((condition) {
-                    // Map enum to readable text
+                    // Friendly condition label.
                     String label = '';
                     switch (condition) {
                       case ItemCondition.newItem: label = 'New'; break;
@@ -813,7 +831,7 @@ class _PostItemScreenState extends State<PostItemScreen> {
                 const SizedBox(height: 16),
               ],
 
-              // Price & Per Row
+              // Price and unit.
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -874,12 +892,7 @@ class _PostItemScreenState extends State<PostItemScreen> {
                     border: OutlineInputBorder(),
                   ),
                   validator: (value) {
-                    // Mandatory for Rent and Borrow?
-                    // User said: "Security Deposit (this is also mandatory)" in general list,
-                    // but also "If the user choose type Rent... only need... security deposit".
-                    // "If the user choose type Borrow... show... security deposit".
-                    // "If the user choose hire... only show price and per" (so no deposit).
-                    // So mandatory if visible.
+                    // Require a deposit when shown.
                     if (showDeposit && (value == null || value.isEmpty)) {
                       return 'Required';
                     }
@@ -893,7 +906,7 @@ class _PostItemScreenState extends State<PostItemScreen> {
               const Text("Location Details", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               const SizedBox(height: 16),
 
-              // State & District
+              // State and district.
               Row(
                 children: [
                   Expanded(
@@ -914,7 +927,7 @@ class _PostItemScreenState extends State<PostItemScreen> {
                       onChanged: (value) {
                         setState(() {
                           _selectedState = value;
-                          _selectedDistrict = null; // Reset district
+                          _selectedDistrict = null;
                           _autoDetectedState = null;
                           _autoDetectedDistrict = null;
                         });
@@ -953,7 +966,7 @@ class _PostItemScreenState extends State<PostItemScreen> {
               ),
               const SizedBox(height: 8),
               
-              // Use Current Location Button
+              // Use current location button.
               Align(
                 alignment: Alignment.centerLeft,
                 child: TextButton.icon(
@@ -968,7 +981,7 @@ class _PostItemScreenState extends State<PostItemScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Address
+              // Address field.
               TextFormField(
                 controller: _addressController,
                 decoration: const InputDecoration(
@@ -985,7 +998,7 @@ class _PostItemScreenState extends State<PostItemScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Landmark
+              // Landmark field.
               TextFormField(
                 controller: _landmarkController,
                 decoration: const InputDecoration(
@@ -996,7 +1009,7 @@ class _PostItemScreenState extends State<PostItemScreen> {
               ),
               const SizedBox(height: 32),
 
-              // Submit Button
+              // Submit action.
               SizedBox(
                 width: double.infinity,
                 height: 50,

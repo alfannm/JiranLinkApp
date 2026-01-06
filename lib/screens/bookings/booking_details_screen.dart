@@ -9,11 +9,13 @@ import '../../providers/bookings_provider.dart';
 import '../../theme/app_theme.dart';
 import 'payment_screen.dart';
 
+// Detailed view of a booking.
 class BookingDetailsScreen extends StatelessWidget {
   final Booking booking;
 
   const BookingDetailsScreen({super.key, required this.booking});
 
+  // Builds the booking details layout.
   @override
   Widget build(BuildContext context) {
     final dateFormat = DateFormat('MMM d, y');
@@ -38,6 +40,7 @@ class BookingDetailsScreen extends StatelessWidget {
     final canConfirmReturned =
         booking.status == BookingStatus.active && isOwner;
 
+    // Builds a bottom action sheet button.
     Widget buildActionSheet({
       required String label,
       required Future<void> Function() onPressed,
@@ -208,6 +211,7 @@ class BookingDetailsScreen extends StatelessWidget {
     );
   }
 
+  // Builds the item summary card.
   Widget _buildItemCard() {
     return Container(
       padding: const EdgeInsets.all(12),
@@ -257,6 +261,7 @@ class BookingDetailsScreen extends StatelessWidget {
     );
   }
 
+  // Builds a labeled detail row.
   Widget _buildInfoRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -283,6 +288,7 @@ class BookingDetailsScreen extends StatelessWidget {
     );
   }
 
+  // Builds a price row for the summary.
   Widget _buildPriceRow(String label, String value, {bool highlight = false}) {
     final valueStyle = TextStyle(
       color: highlight ? AppTheme.primary : AppTheme.foreground,
@@ -303,6 +309,7 @@ class BookingDetailsScreen extends StatelessWidget {
     );
   }
 
+  // Maps booking status to a display color.
   Color _getStatusColor(BookingStatus status) {
     switch (status) {
       case BookingStatus.active:

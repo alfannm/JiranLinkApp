@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 
+// Data model for a single slide in the onboarding carousel.
+// Data model for a single onboarding slide.
 class OnboardingSlide {
   final IconData icon;
   final String title;
   final String description;
   final LinearGradient gradient;
 
+  // Creates a slide definition.
   OnboardingSlide({
     required this.icon,
     required this.title,
@@ -14,6 +17,8 @@ class OnboardingSlide {
   });
 }
 
+// List of slides displayed to new users explaining the app's features.
+// Default onboarding slide content.
 final List<OnboardingSlide> onboardingSlides = [
   OnboardingSlide(
     icon: Icons.handshake_outlined,

@@ -8,6 +8,7 @@ import '../../models/user.dart' as app;
 import '../../providers/bookings_provider.dart';
 import '../../theme/app_theme.dart';
 
+// Screen for sending a booking request.
 class BookingRequestScreen extends StatefulWidget {
   final Item item;
   final app.User borrower;
@@ -22,6 +23,7 @@ class BookingRequestScreen extends StatefulWidget {
   State<BookingRequestScreen> createState() => _BookingRequestScreenState();
 }
 
+// State for request dates and notes.
 class _BookingRequestScreenState extends State<BookingRequestScreen> {
   final _startController = TextEditingController();
   final _endController = TextEditingController();
@@ -31,10 +33,12 @@ class _BookingRequestScreenState extends State<BookingRequestScreen> {
   DateTime? _endDate;
   bool _submitting = false;
 
+  // True when the listing is a service.
   bool get _isService =>
       widget.item.type == ItemType.hire ||
       widget.item.category == ItemCategory.services ||
       widget.item.category == ItemCategory.skills;
+  // True when the borrower owns the listing.
   bool get _isOwnerBooking {
     final owner = widget.item.owner;
     final borrower = widget.borrower;
@@ -44,11 +48,13 @@ class _BookingRequestScreenState extends State<BookingRequestScreen> {
             owner.email == borrower.email);
   }
 
+  // Initializes the screen state.
   @override
   void initState() {
     super.initState();
   }
 
+  // Disposes text controllers.
   @override
   void dispose() {
     _startController.dispose();
@@ -57,6 +63,7 @@ class _BookingRequestScreenState extends State<BookingRequestScreen> {
     super.dispose();
   }
 
+  // Calculates duration in billing units.
   int _durationUnits() {
     if (_startDate == null || _endDate == null) return 0;
     return BookingsProvider.calculateUnits(
@@ -66,6 +73,7 @@ class _BookingRequestScreenState extends State<BookingRequestScreen> {
     );
   }
 
+  // Returns a readable unit label.
   String _priceUnitLabel() {
     switch (widget.item.priceUnit) {
       case PriceUnit.hour:
@@ -81,6 +89,7 @@ class _BookingRequestScreenState extends State<BookingRequestScreen> {
     }
   }
 
+  // Returns a readable duration label.
   String _durationLabel() {
     final units = _durationUnits();
     final unitLabel = _priceUnitLabel();
@@ -90,15 +99,18 @@ class _BookingRequestScreenState extends State<BookingRequestScreen> {
     return '$units ${unitLabel}s';
   }
 
+  // Formats a value as currency.
   String _formatCurrency(double value) {
     return 'RM ${value.toStringAsFixed(2)}';
   }
 
+  // Calculates total price without deposit.
   double _totalAmount() {
     if (_startDate == null || _endDate == null) return 0;
     return widget.item.price * _durationUnits();
   }
 
+  // Opens a date picker for the start date.
   Future<void> _pickStartDate() async {
     final now = DateTime.now();
     final picked = await showDatePicker(
@@ -118,6 +130,7 @@ class _BookingRequestScreenState extends State<BookingRequestScreen> {
     });
   }
 
+  // Opens a date picker for the end date.
   Future<void> _pickEndDate() async {
     final now = DateTime.now();
     final start = _startDate ?? now;
@@ -134,6 +147,7 @@ class _BookingRequestScreenState extends State<BookingRequestScreen> {
     });
   }
 
+  // Validates inputs and submits the request.
   Future<void> _submitRequest() async {
     if (_isOwnerBooking) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -183,6 +197,7 @@ class _BookingRequestScreenState extends State<BookingRequestScreen> {
     }
   }
 
+  // Builds the booking request layout.
   @override
   Widget build(BuildContext context) {
     if (_isOwnerBooking) {
@@ -385,6 +400,7 @@ class _BookingRequestScreenState extends State<BookingRequestScreen> {
     );
   }
 
+  // Builds the item summary card.
   Widget _buildItemCard() {
     return Container(
       padding: const EdgeInsets.all(12),
@@ -442,6 +458,7 @@ class _BookingRequestScreenState extends State<BookingRequestScreen> {
     );
   }
 
+  // Builds a section header with an icon.
   Widget _buildSectionHeader(String title, IconData icon) {
     return Row(
       children: [
@@ -458,6 +475,7 @@ class _BookingRequestScreenState extends State<BookingRequestScreen> {
     );
   }
 
+  // Builds a read-only date input field.
   Widget _buildDateField({
     required String label,
     required TextEditingController controller,
@@ -475,6 +493,7 @@ class _BookingRequestScreenState extends State<BookingRequestScreen> {
     );
   }
 
+  // Builds a price row for the summary.
   Widget _buildPriceRow(String label, String value, {bool highlight = false}) {
     final valueStyle = TextStyle(
       color: highlight ? AppTheme.primary : AppTheme.foreground,

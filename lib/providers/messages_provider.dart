@@ -7,6 +7,7 @@ import '../models/chat_thread.dart';
 import '../models/item.dart';
 import '../models/user.dart' as app;
 
+// Manages chat threads and message sending.
 class MessagesProvider extends ChangeNotifier {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
@@ -14,10 +15,13 @@ class MessagesProvider extends ChangeNotifier {
   List<ChatThread> _threads = [];
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _threadsSub;
 
+  // Current chat threads.
   List<ChatThread> get threads => _threads;
+  // Total unread messages across threads.
   int get unreadCount =>
       _threads.fold(0, (total, t) => total + t.unreadCount);
 
+  // Updates the active user and subscribes to threads.
   void setUser(app.User? user) {
     if (user?.id == _currentUser?.id) return;
     _currentUser = user;
@@ -46,6 +50,7 @@ class MessagesProvider extends ChangeNotifier {
     });
   }
 
+  // Builds a stable chat id for two users and an optional item.
   String buildChatId({
     required String userA,
     required String userB,
@@ -56,6 +61,7 @@ class MessagesProvider extends ChangeNotifier {
     return itemId == null || itemId.isEmpty ? base : '${base}_$itemId';
   }
 
+  // Returns a message stream for a chat.
   Stream<QuerySnapshot<Map<String, dynamic>>> messageStream(String chatId) {
     return _db
         .collection('chats')
@@ -65,6 +71,7 @@ class MessagesProvider extends ChangeNotifier {
         .snapshots();
   }
 
+  // Sends a new message and updates the thread summary.
   Future<void> sendMessage({
     String? chatId,
     required app.User otherUser,
@@ -120,6 +127,7 @@ class MessagesProvider extends ChangeNotifier {
     });
   }
 
+  // Marks a chat as read for the current user.
   Future<void> markChatRead(String chatId) async {
     final me = _currentUser;
     if (me == null) return;
@@ -136,6 +144,7 @@ class MessagesProvider extends ChangeNotifier {
     }
   }
 
+  // Cleans up Firestore subscriptions.
   @override
   void dispose() {
     _threadsSub?.cancel();

@@ -8,6 +8,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/messages_provider.dart';
 import '../../theme/app_theme.dart';
 
+// Chat conversation screen.
 class ChatScreen extends StatefulWidget {
   final String? chatId;
   final String otherUserId;
@@ -30,11 +31,13 @@ class ChatScreen extends StatefulWidget {
   State<ChatScreen> createState() => _ChatScreenState();
 }
 
+// State for messages and input.
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
   String? _chatId;
   Stream<QuerySnapshot<Map<String, dynamic>>>? _messagesStream;
 
+  // Seeds the input with an initial message.
   @override
   void initState() {
     super.initState();
@@ -47,12 +50,14 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  // Disposes the message controller.
   @override
   void dispose() {
     _messageController.dispose();
     super.dispose();
   }
 
+  // Sets up the chat stream once dependencies are ready.
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -76,6 +81,7 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  // Sends the current input message.
   Future<void> _sendMessage() async {
     final text = _messageController.text.trim();
     if (text.isEmpty) return;
@@ -115,6 +121,7 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  // Builds the chat layout.
   @override
   Widget build(BuildContext context) {
     final me = context.watch<AuthProvider>().currentUser;
@@ -187,6 +194,7 @@ class _ChatScreenState extends State<ChatScreen> {
           ],
         ),
       ),
+      // Body switches between self-chat warning and message stream.
       body: isSelfChat
           ? Center(
               child: Padding(
@@ -213,6 +221,7 @@ class _ChatScreenState extends State<ChatScreen> {
             )
           : Column(
               children: [
+                // Message list.
                 Expanded(
                   child: _messagesStream == null
                       ? const Center(child: CircularProgressIndicator())
@@ -268,6 +277,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           },
                         ),
                 ),
+                // Message input.
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: const BoxDecoration(

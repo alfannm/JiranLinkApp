@@ -13,6 +13,7 @@ import '../../providers/favorites_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/items_provider.dart';
 
+// Item detail screen with photos and actions.
 class ItemDetailScreen extends StatefulWidget {
   final Item item;
   final String? heroTag;
@@ -27,9 +28,11 @@ class ItemDetailScreen extends StatefulWidget {
   State<ItemDetailScreen> createState() => _ItemDetailScreenState();
 }
 
+// State for image carousel and selections.
 class _ItemDetailScreenState extends State<ItemDetailScreen> {
   int _currentImageIndex = 0;
 
+  // Opens a full screen image viewer.
   void _openFullScreenImage(List<String> images, int initialIndex) {
     Navigator.push(
       context,
@@ -84,6 +87,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
     );
   }
 
+  // Builds the item detail layout.
   @override
   Widget build(BuildContext context) {
     final itemsProvider = context.watch<ItemsProvider>();
@@ -117,7 +121,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
-            // App Bar & Image
+            // Photo header.
             SliverAppBar(
               expandedHeight: 300,
               pinned: true,
@@ -175,7 +179,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                                   ),
                           ),
                         ),
-                        // Gradient overlay for text readability
+                        // Gradient overlay for the header.
                         Positioned(
                           bottom: 0,
                           left: 0,
@@ -194,7 +198,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                             ),
                           ),
                         ),
-                        // Page Indicator
+                        // Carousel indicator.
                         if (item.images.length > 1)
                           Positioned(
                             bottom: 16,
@@ -278,14 +282,14 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
               ],
             ),
 
-            // Content
+            // Details content.
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.all(24.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Summary
+                    // Item summary.
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -372,7 +376,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                     const SizedBox(height: 12),
                     const Divider(height: 32),
 
-                    // Description
+                    // Item description.
                     const Text(
                       'Description',
                       style: TextStyle(
@@ -392,7 +396,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                     ),
                     const Divider(height: 32),
 
-                    // Details
+                    // Item details.
                     const Text(
                       'Details',
                       style: TextStyle(
@@ -442,7 +446,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                     ),
                     const Divider(height: 32),
 
-                    // Owner Profile
+                    // Owner profile.
                     const Text(
                       'Owner',
                       style: TextStyle(
@@ -588,7 +592,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 100), // Space for bottom bar
+                    const SizedBox(height: 100),
                   ],
                 ),
               ),
@@ -772,6 +776,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
     );
   }
 
+  // Returns the action label based on listing type.
   String _actionLabel(ItemType type) {
     switch (type) {
       case ItemType.borrow:
@@ -783,6 +788,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
     }
   }
 
+  // Builds the type chip.
   Widget _buildTypeChip(Item item) {
     final label = _typeLabel(item).toUpperCase();
     final color = _typeAccent(item);
@@ -804,6 +810,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
     );
   }
 
+  // Builds the availability chip.
   Widget _buildStatusChip(bool available) {
     final color = available ? Colors.green : Colors.red;
     return Container(
@@ -823,6 +830,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
     );
   }
 
+  // Builds a label and value pair.
   Widget _buildDetailItem(String label, String value) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -847,11 +855,13 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
     );
   }
 
+  // Capitalizes a single word.
   String _capitalize(String value) {
     if (value.isEmpty) return value;
     return value[0].toUpperCase() + value.substring(1).toLowerCase();
   }
 
+  // Formats condition for display.
   String _formatCondition(ItemCondition? condition) {
     if (condition == null) return 'N/A';
     switch (condition) {
@@ -866,6 +876,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
     }
   }
 
+  // Returns a readable type label.
   String _typeLabel(Item item) {
     if ((item.category == ItemCategory.services ||
             item.category == ItemCategory.skills) &&
@@ -882,6 +893,7 @@ class _ItemDetailScreenState extends State<ItemDetailScreen> {
     }
   }
 
+  // Returns the accent color for an item type.
   Color _typeAccent(Item item) {
     if ((item.category == ItemCategory.services ||
             item.category == ItemCategory.skills) &&

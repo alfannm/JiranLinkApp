@@ -13,9 +13,11 @@ import 'incoming_requests_screen.dart';
 import 'my_listings_screen.dart';
 import 'edit_profile_screen.dart';
 
+// Profile overview and account menu.
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
+  // Opens the support email link.
   Future<void> _contactSupport(BuildContext context) async {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     final emailUri = Uri(
@@ -41,6 +43,7 @@ class ProfileScreen extends StatelessWidget {
     }
   }
 
+  // Builds the profile screen layout.
   @override
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthProvider>();
@@ -56,6 +59,7 @@ class ProfileScreen extends StatelessWidget {
 
     final myListings =
         itemsProvider.allItems.where((i) => i.owner.id == user.id).length;
+    // Counts statuses that are considered successful.
     bool isSuccessful(BookingStatus status) {
       return status == BookingStatus.accepted ||
           status == BookingStatus.pendingPickup ||
@@ -108,7 +112,7 @@ class ProfileScreen extends StatelessWidget {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Profile Header
+            // Profile header.
             Container(
               padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
               decoration: const BoxDecoration(
@@ -183,7 +187,7 @@ class ProfileScreen extends StatelessWidget {
                   const SizedBox(height: 8),
                   const SizedBox(height: 24),
 
-                  // Stats Row
+                  // Stats row.
                   Row(
                     children: [
                       _buildStatCard('$myListings', 'Items'),
@@ -197,7 +201,7 @@ class ProfileScreen extends StatelessWidget {
               ),
             ),
 
-            // Menu Items
+            // Menu items.
             const SizedBox(height: 24),
             _buildMenuItem(
               context,
@@ -320,7 +324,7 @@ class ProfileScreen extends StatelessWidget {
 
             const SizedBox(height: 24),
 
-            // Logout Button
+            // Logout button.
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: SizedBox(
@@ -346,6 +350,7 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
+  // Builds a stat card for the header.
   Widget _buildStatCard(String value, String label) {
     return Expanded(
       child: Container(
@@ -378,6 +383,7 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
+  // Builds a section header label.
   Widget _buildSectionHeader(String title) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
@@ -395,6 +401,7 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
+  // Builds a tappable menu row.
   Widget _buildMenuItem(
     BuildContext context, {
     required IconData icon,
@@ -426,6 +433,7 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
+  // Builds a trailing indicator for menu rows.
   Widget _buildMenuTrailing({required bool showDot}) {
     return Row(
       mainAxisSize: MainAxisSize.min,

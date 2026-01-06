@@ -6,9 +6,11 @@ import '../../models/booking.dart';
 import '../../providers/bookings_provider.dart';
 import '../bookings/booking_details_screen.dart';
 
+// Lists the bookings made by the user.
 class BookingsScreen extends StatelessWidget {
   const BookingsScreen({super.key});
 
+  // Builds the bookings list.
   @override
   Widget build(BuildContext context) {
     final bookings = context.watch<BookingsProvider>().myBookings;
@@ -42,6 +44,7 @@ class BookingsScreen extends StatelessWidget {
   }
 }
 
+// Card showing a summary of a single booking.
 class BookingCard extends StatelessWidget {
   final Booking booking;
   final VoidCallback onTap;
@@ -52,6 +55,7 @@ class BookingCard extends StatelessWidget {
     required this.onTap,
   });
 
+  // Builds the booking card layout.
   @override
   Widget build(BuildContext context) {
     final statusColor = _getStatusColor(booking.status);
@@ -169,6 +173,7 @@ class BookingCard extends StatelessWidget {
     );
   }
 
+  // Maps booking status to a display color.
   Color _getStatusColor(BookingStatus status) {
     switch (status) {
       case BookingStatus.active:
@@ -189,9 +194,11 @@ class BookingCard extends StatelessWidget {
   }
 }
 
+// Small dot indicator for attention.
 class _AttentionDot extends StatelessWidget {
   const _AttentionDot();
 
+  // Builds the dot widget.
   @override
   Widget build(BuildContext context) {
     return Container(

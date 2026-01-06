@@ -7,6 +7,7 @@ import '../../widgets/item_card.dart';
 import '../item_details/item_detail_screen.dart';
 import '../../models/item.dart';
 
+// Browse and filter item listings.
 class BrowseScreen extends StatefulWidget {
   const BrowseScreen({super.key});
 
@@ -14,21 +15,25 @@ class BrowseScreen extends StatefulWidget {
   State<BrowseScreen> createState() => _BrowseScreenState();
 }
 
+// State for search and filter controls.
 class _BrowseScreenState extends State<BrowseScreen> {
   late TextEditingController _searchController;
 
+  // Initializes the search controller.
   @override
   void initState() {
     super.initState();
     _searchController = TextEditingController();
   }
 
+  // Disposes the search controller.
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
   }
 
+  // Builds the browse screen layout.
   @override
   Widget build(BuildContext context) {
     final itemsProvider = context.watch<ItemsProvider>();
@@ -36,23 +41,21 @@ class _BrowseScreenState extends State<BrowseScreen> {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     final items = itemsProvider.items;
 
-    // Sync controller with provider if needed (e.g. initial load or external update)
     if (_searchController.text != itemsProvider.searchQuery) {
       _searchController.text = itemsProvider.searchQuery;
-      // _searchController.selection = TextSelection.fromPosition(TextPosition(offset: _searchController.text.length)); // Optional: move cursor to end
     }
 
     return Scaffold(
       body: SafeArea(
         child: Column(
           children: [
-            // Search Header
+            // Search header.
             Container(
               padding: const EdgeInsets.all(16),
               color: Colors.white,
               child: Column(
                 children: [
-                  // Search Bar
+                  // Search bar.
                   Row(
                     children: [
                       Expanded(
@@ -85,7 +88,7 @@ class _BrowseScreenState extends State<BrowseScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Filter Chips
+                  // Filter chips.
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
@@ -104,7 +107,7 @@ class _BrowseScreenState extends State<BrowseScreen> {
                               return;
                             }
 
-                            // Set a reasonable default radius if none is set
+                            // Set a default radius if none is selected.
                             itemsProvider.setRadiusFilter(itemsProvider.radiusFilter ?? 10);
                           },
                         ),
@@ -121,7 +124,7 @@ class _BrowseScreenState extends State<BrowseScreen> {
 
             const Divider(height: 1, color: AppTheme.border),
 
-            // Results Count
+            // Results count.
             Padding(
               padding: const EdgeInsets.all(16),
               child: Row(
@@ -137,7 +140,7 @@ class _BrowseScreenState extends State<BrowseScreen> {
               ),
             ),
 
-            // Grid
+            // Results grid.
             Expanded(
               child: items.isEmpty
                   ? Center(
@@ -195,6 +198,7 @@ class _BrowseScreenState extends State<BrowseScreen> {
     );
   }
 
+  // Builds a filter chip button.
   Widget _buildFilterButton({
     required IconData icon,
     required String label,
@@ -232,6 +236,7 @@ class _BrowseScreenState extends State<BrowseScreen> {
     );
   }
 
+  // Builds the distance filter dropdown.
   Widget _buildDistanceDropdown(ItemsProvider itemsProvider) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -258,6 +263,7 @@ class _BrowseScreenState extends State<BrowseScreen> {
     );
   }
 
+  // Builds the category filter dropdown.
   Widget _buildCategoryDropdown(ItemsProvider itemsProvider) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12),

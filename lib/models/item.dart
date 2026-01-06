@@ -1,11 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'user.dart';
 
+// Categories for listings.
 enum ItemCategory { tools, appliances, skills, services, others }
+// Listing types.
 enum ItemType { rent, borrow, hire }
+// Item condition options.
 enum ItemCondition { newItem, likeNew, good, fair }
+// Units for pricing.
 enum PriceUnit { hour, day, week, month, job }
 
+// Parses optional date values from mixed inputs.
 DateTime? _parseOptionalDate(dynamic raw) {
   if (raw == null) return null;
   if (raw is Timestamp) return raw.toDate();
@@ -14,6 +19,7 @@ DateTime? _parseOptionalDate(dynamic raw) {
   return null;
 }
 
+// Item listing data.
 class Item {
   final String id;
   final String title;
@@ -37,6 +43,7 @@ class Item {
   final DateTime postedDate;
   final int views;
 
+  // Creates an item instance.
   Item({
     required this.id,
     required this.title,
@@ -61,6 +68,7 @@ class Item {
     required this.views,
   });
 
+  // Creates an item from a JSON map.
   factory Item.fromJson(Map<String, dynamic> json) {
     final postedRaw = json['postedDate'];
     DateTime postedDate;
@@ -113,6 +121,7 @@ class Item {
     );
   }
 
+  // Creates an item from a Firestore document.
   factory Item.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data() ?? {};
     return Item(
@@ -155,6 +164,7 @@ class Item {
     );
   }
 
+  // Converts the item to a JSON map.
   Map<String, dynamic> toJson() {
     return {
       'title': title,
@@ -180,6 +190,7 @@ class Item {
     };
   }
 
+  // Returns a display-friendly price label.
   String getPriceLabel() {
     return 'RM${price.toStringAsFixed(0)}/${priceUnit.toString().split('.').last}';
   }

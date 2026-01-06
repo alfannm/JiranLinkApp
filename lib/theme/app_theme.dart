@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+// Theme colors and component styles.
 class AppTheme {
-  // Clean Green Color Palette
-  static const Color primary = Color(0xFF00A651); // Macalister Green
+  // Clean green color palette.
+  static const Color primary = Color(0xFF00A651);
   static const Color primaryDark = Color(0xFF007A3D);
   static const Color primarySoft = Color(0xFFE6F6EE);
   static const Color background = Color(0xFFF5FBF8);
@@ -16,11 +17,11 @@ class AppTheme {
   static const Color destructive = Color(0xFFE5484D);
   static const Color shadow = Color(0x14000000);
   static const Color primaryForeground = Colors.white;
-  static const Color secondary =
-      Color(0xFFE7F3ED); // Soft fill for inputs and chips
+  // Soft fill for inputs and chips.
+  static const Color secondary = Color(0xFFE7F3ED);
   static const Color secondaryForeground = foreground;
   static const Color accent = Color(0xFF12B76A);
-  // Nature-forward accents that complement the green theme.
+  // Accent colors that complement the base palette.
   static const Color accentLeaf = Color(0xFF2F9E44);
   static const Color accentOlive = Color(0xFF7A8F37);
   static const Color accentTeal = Color(0xFF0F766E);
@@ -50,6 +51,7 @@ class AppTheme {
     end: Alignment.bottomRight,
   );
 
+  // Light theme configuration used by the app.
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,

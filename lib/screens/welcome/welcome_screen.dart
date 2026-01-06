@@ -3,6 +3,8 @@ import '../../theme/app_theme.dart';
 import 'onboarding_slides.dart';
 import 'auth_screen.dart';
 
+// The onboarding screen shown on first launch.
+// Onboarding and entry screen.
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
 
@@ -10,11 +12,14 @@ class WelcomeScreen extends StatefulWidget {
   State<WelcomeScreen> createState() => _WelcomeScreenState();
 }
 
+// State for onboarding slides and auth toggle.
 class _WelcomeScreenState extends State<WelcomeScreen> {
   int _currentSlide = 0;
   bool _showAuth = false;
   final PageController _pageController = PageController();
 
+  // Advances the slide or moves to the authentication screen if at the end.
+  // Advances to the next slide or opens auth.
   void _handleNext() {
     if (_currentSlide < onboardingSlides.length - 1) {
       _pageController.nextPage(
@@ -28,12 +33,14 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     }
   }
 
+  // Skips onboarding and opens auth.
   void _handleSkip() {
     setState(() {
       _showAuth = true;
     });
   }
 
+  // Builds the onboarding or auth screen.
   @override
   Widget build(BuildContext context) {
     if (_showAuth) {
@@ -45,7 +52,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Slides
+            // Slides.
             Expanded(
               child: PageView.builder(
                 controller: _pageController,
@@ -63,7 +70,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // Icon
+                        // Slide icon.
                         Container(
                           width: 128,
                           height: 128,
@@ -86,7 +93,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         ),
                         const SizedBox(height: 48),
                         
-                        // Title
+                        // Slide title.
                         Text(
                           slide.title,
                           style: Theme.of(context).textTheme.displaySmall?.copyWith(
@@ -96,7 +103,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         ),
                         const SizedBox(height: 16),
                         
-                        // Description
+                        // Slide description.
                         Text(
                           slide.description,
                           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
@@ -112,7 +119,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               ),
             ),
 
-            // Indicators
+            // Slide indicators.
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: AnimatedBuilder(
@@ -150,7 +157,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               ),
             ),
             
-            // Navigation Buttons
+            // Navigation buttons.
             Padding(
               padding: const EdgeInsets.all(24.0),
               child: Row(
@@ -194,6 +201,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     );
   }
 
+  // Disposes the page controller.
   @override
   void dispose() {
     _pageController.dispose();

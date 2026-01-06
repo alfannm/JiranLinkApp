@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../models/item.dart';
 import '../theme/app_theme.dart';
 
+// Card widget for an item summary.
 class ItemCard extends StatefulWidget {
   final Item item;
   final bool isFavorite;
@@ -23,9 +24,11 @@ class ItemCard extends StatefulWidget {
   State<ItemCard> createState() => _ItemCardState();
 }
 
+// State for press animation and type display.
 class _ItemCardState extends State<ItemCard> {
   bool _isPressed = false;
 
+  // Updates pressed state for tap feedback.
   void _setPressed(bool value) {
     if (_isPressed == value) return;
     setState(() {
@@ -33,6 +36,7 @@ class _ItemCardState extends State<ItemCard> {
     });
   }
 
+  // Chooses an accent color for the item type.
   Color _typeAccent(Item item) {
     if ((item.category == ItemCategory.services ||
             item.category == ItemCategory.skills) &&
@@ -49,6 +53,7 @@ class _ItemCardState extends State<ItemCard> {
     }
   }
 
+  // Returns a short label for the item type.
   String _typeLabel(Item item) {
     if ((item.category == ItemCategory.services ||
             item.category == ItemCategory.skills) &&
@@ -65,6 +70,7 @@ class _ItemCardState extends State<ItemCard> {
     }
   }
 
+  // Builds the card layout.
   @override
   Widget build(BuildContext context) {
     final item = widget.item;
@@ -96,20 +102,20 @@ class _ItemCardState extends State<ItemCard> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 1. IMAGE SECTION (Fixed Height Ratio)
+              // Item photo and badges.
               Stack(
                 children: [
                   ClipRRect(
                     borderRadius:
                         const BorderRadius.vertical(top: Radius.circular(16)),
                     child: AspectRatio(
-                      aspectRatio: 4 / 3, // Keeps image nice and standard
+                      aspectRatio: 4 / 3,
                       child: Hero(
                         tag: heroTag,
                         child: CachedNetworkImage(
                           imageUrl: item.images.isNotEmpty
                               ? item.images.first
-                              : 'https://placehold.co/400x300/png', // Fallback image
+                              : 'https://placehold.co/400x300/png',
                           fit: BoxFit.cover,
                           placeholder: (context, url) => Container(
                             color: AppTheme.muted,
@@ -125,7 +131,7 @@ class _ItemCardState extends State<ItemCard> {
                       ),
                     ),
                   ),
-                  // Favorite Button
+                  // Favorite toggle.
                   Positioned(
                     top: 8,
                     left: 8,
@@ -167,7 +173,7 @@ class _ItemCardState extends State<ItemCard> {
                       ),
                     ),
                   ),
-                  // Type Badge
+                  // Type badge.
                   Positioned(
                     top: 8,
                     right: 8,
@@ -215,15 +221,15 @@ class _ItemCardState extends State<ItemCard> {
                 ],
               ),
 
-              // 2. CONTENT SECTION (Flexible Height)
+              // Item details.
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.all(10.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min, // Important!
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Title
+                      // Title.
                       Text(
                         item.title,
                         style: const TextStyle(
@@ -237,14 +243,13 @@ class _ItemCardState extends State<ItemCard> {
                       ),
                       const SizedBox(height: 6),
 
-                      // Location Row
+                      // Location row.
                       Row(
                         children: [
                           const Icon(Icons.location_on,
                               size: 12, color: AppTheme.mutedForeground),
                           const SizedBox(width: 2),
                           Expanded(
-                            // Prevents text from pushing off screen
                             child: Text(
                               item.district,
                               style: const TextStyle(
@@ -259,7 +264,7 @@ class _ItemCardState extends State<ItemCard> {
                       ),
                       const SizedBox(height: 6),
 
-                      // Price/Deposit
+                      // Price and deposit.
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,

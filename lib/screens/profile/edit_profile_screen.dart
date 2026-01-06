@@ -11,6 +11,7 @@ import '../../models/user.dart' as app;
 import '../../providers/auth_provider.dart';
 import '../../theme/app_theme.dart';
 
+// Screen for editing user profile details.
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
 
@@ -18,6 +19,7 @@ class EditProfileScreen extends StatefulWidget {
   State<EditProfileScreen> createState() => _EditProfileScreenState();
 }
 
+// State for profile form and avatar upload.
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
@@ -29,6 +31,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   XFile? _selectedAvatar;
   String? _currentAvatarUrl;
 
+  // Loads current user data into the form.
   @override
   void initState() {
     super.initState();
@@ -40,6 +43,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
+  // Disposes text controllers.
   @override
   void dispose() {
     _nameController.dispose();
@@ -47,6 +51,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.dispose();
   }
 
+  // Saves profile changes to Firestore.
   Future<void> _save() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     final user = context.read<AuthProvider>().currentUser;
@@ -86,6 +91,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
+  // Builds the edit profile layout.
   @override
   Widget build(BuildContext context) {
     final user = context.watch<AuthProvider>().currentUser;
@@ -170,6 +176,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
+  // Uploads a new avatar and returns its URL.
   Future<String?> _uploadAvatar(String userId, XFile file) async {
     final bytes = await file.readAsBytes();
     final ref = FirebaseStorage.instance
@@ -182,6 +189,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return ref.getDownloadURL();
   }
 
+  // Picks an avatar from the given source.
   Future<void> _pickAvatar(ImageSource source) async {
     final file = await _picker.pickImage(
       source: source,
@@ -194,6 +202,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     });
   }
 
+  // Clears the selected avatar.
   void _removeAvatar() {
     setState(() {
       _selectedAvatar = null;
@@ -201,6 +210,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     });
   }
 
+  // Shows the avatar source selection sheet.
   Future<void> _showAvatarSourceSheet() async {
     await showModalBottomSheet<void>(
       context: context,
@@ -250,6 +260,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
+  // Resolves the avatar image to display.
   ImageProvider? _resolveAvatarImage() {
     if (_selectedAvatar != null) {
       if (kIsWeb) {
@@ -263,6 +274,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return null;
   }
 
+  // Builds the avatar preview and controls.
   Widget _buildAvatarSection(app.User user) {
     final avatarImage = _resolveAvatarImage();
     final fallbackLetter =
@@ -344,6 +356,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
+  // Builds a read-only form field.
   Widget _buildReadOnlyField(String label, String value) {
     final displayValue = value.isNotEmpty ? value : 'Not set';
     return InputDecorator(
