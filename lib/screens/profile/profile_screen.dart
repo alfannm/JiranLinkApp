@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/bookings_provider.dart';
 import '../../providers/items_provider.dart';
@@ -13,6 +15,30 @@ import 'edit_profile_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
+
+  Future<void> _contactSupport(BuildContext context) async {
+    final emailUri = Uri(
+      scheme: 'mailto',
+      path: 's72505@ocean.umt.edu.my',
+    );
+    try {
+      final launched =
+          await launchUrl(emailUri, mode: LaunchMode.externalApplication);
+      if (!launched) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Unable to open email app.')),
+        );
+      }
+    } on PlatformException {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Unable to open email app.')),
+      );
+    } catch (_) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Unable to open email app.')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -298,6 +324,12 @@ class ProfileScreen extends StatelessWidget {
                   },
                 );
               },
+            ),
+            _buildMenuItem(
+              context,
+              icon: Icons.support_agent_outlined,
+              title: 'Contact Support',
+              onTap: () => _contactSupport(context),
             ),
 
             const SizedBox(height: 24),
